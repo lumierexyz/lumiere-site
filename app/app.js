@@ -276,7 +276,7 @@ $("#coverage-form").addEventListener("submit", e => {
 
 // ------------------------------------------------------------------ accounts (Privy email code)
 
-const PRIVY_BUNDLE = "/app/vendor/privy-core-0.79.3.js"
+const PRIVY_BUNDLE = "/app/sdk/privy-core-0.79.3.js"
 
 async function ensurePrivy() {
   if (privy) return privy
