@@ -13,6 +13,7 @@
   <link rel="preload" href="/assets/files/Gx3MGZkSYrrmCVe9sdeh0yV84qk.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/app/app.css">
   <link rel="stylesheet" href="/app/onboarding.css">
+  <link rel="stylesheet" href="/app/auth.css">
 </head>
 <body>
   <header class="topbar" data-tour-blur>
@@ -28,7 +29,7 @@
     </nav>
     <div class="account">
       <span class="chip" id="mode-chip">Illustrative data</span>
-      <button class="pill accent" id="auth-button" type="button">Create account</button>
+      <button class="pill accent" id="auth-button" type="button">Sign out</button>
     </div>
   </header>
 
@@ -122,29 +123,6 @@
     </section>
   </main>
 
-  <dialog class="signin" id="signin">
-    <form id="signin-form" novalidate>
-      <button type="button" class="signin-close" id="signin-close" aria-label="Close">
-        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>
-      </button>
-      <div class="signin-pane" id="pane-email">
-        <h2>Sign in or create an account</h2>
-        <p>Enter your email. We will send you a 6-digit code.</p>
-        <input id="email" type="email" required placeholder="you@example.com" autocomplete="email" inputmode="email">
-        <button class="pill dark wide" id="send-code" type="submit">Continue</button>
-      </div>
-      <div class="signin-pane" id="pane-code" hidden>
-        <h2>Check your inbox</h2>
-        <p>Enter the code sent to <strong id="code-email"></strong>.</p>
-        <input id="code" type="text" required inputmode="numeric" autocomplete="one-time-code" maxlength="6"
-               pattern="[0-9]{6}" placeholder="000000" class="code-input">
-        <button class="pill dark wide" id="verify-code" type="submit">Verify</button>
-        <button class="linkish" id="other-email" type="button">Use another email</button>
-      </div>
-      <p class="signin-status" id="signin-status" role="status"></p>
-      <p class="signin-legal">Secured by Privy. Creating an account does not connect any bank or wallet.</p>
-    </form>
-  </dialog>
 
   <footer class="site-foot" data-tour-blur>
     <span>Lumiere is an early-stage project. Figures are estimates based on official statistics and your own data; they are not guarantees or financial advice.</span>

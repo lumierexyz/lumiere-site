@@ -99,12 +99,8 @@ export function runOnboarding() {
         <div class="ob-card center">
           <svg class="ob-check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 15-16"/></svg>
           <h1 class="ob-title xl">Your index is ready.</h1>
-          <p class="ob-help">We built a first view from your answers. Create a free account with your email to keep it.</p>
-          <div class="ob-actions center stack">
-            <button class="ob-btn light" data-account>Create my account</button>
-            <button class="ob-btn ghost-light" data-next>Continue without an account</button>
-          </div>
-        </div>`
+          <p class="ob-help">We built a first view from your answers. Here is a short tour.</p>
+          <div class="ob-actions center"><button class="ob-btn light" data-next>Open Lumiere</button></div>`
 
       let body = ""
       if (step.kind === "choice" || step.kind === "multi") {

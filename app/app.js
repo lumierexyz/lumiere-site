@@ -5,6 +5,7 @@
 
 import { loadAnswers, resetOnboarding, runOnboarding, saveAnswers } from "./onboarding.js"
 import { runTour, tourDone } from "./tour.js"
+import { getPrivy, currentEmail, runAuthGate, signOut } from "./auth.js"
 
 const CFG = window.LUMIERE_CONFIG || {}
 const AUTH = Boolean(CFG.privyAppId)
@@ -274,85 +275,16 @@ $("#coverage-form").addEventListener("submit", e => {
   calculateCoverage().catch(err => banner(err.message))
 })
 
-// ------------------------------------------------------------------ accounts (Privy email code)
-
-const PRIVY_BUNDLE = "/app/sdk/privy-core-0.79.3.js"
+// ------------------------------------------------------------------ accounts (Privy, see auth.js)
 
 async function ensurePrivy() {
-  if (privy) return privy
-  const { Privy, LocalStorage } = await import(PRIVY_BUNDLE)
-  privy = new Privy({ appId: CFG.privyAppId, storage: new LocalStorage() })
-  await privy.initialize()
+  privy = await getPrivy(CFG.privyAppId)
   return privy
 }
 
-const emailOf = u => (u?.linked_accounts || []).find(a => a.type === "email")?.address || null
-const hasStoredSession = () => Object.keys(localStorage).some(k => k.startsWith("privy:"))
-
-function status(text, error = false) {
-  const el = $("#signin-status")
-  el.textContent = text || ""
-  el.classList.toggle("error", error)
-}
-
-function showPane(name) {
-  $("#pane-email").hidden = name !== "email"
-  $("#pane-code").hidden = name !== "code"
-  status("")
-  setTimeout(() => $(name === "email" ? "#email" : "#code").focus(), 50)
-}
-
-function openSignin() {
-  if (!AUTH) return
-  showPane("email")
-  $("#signin").showModal()
-  ensurePrivy().catch(() => status("Sign-in is temporarily unavailable. Please try again.", true))
-}
-
-$("#signin-close").addEventListener("click", () => $("#signin").close())
-$("#other-email").addEventListener("click", () => showPane("email"))
-
-$("#signin-form").addEventListener("submit", async e => {
-  e.preventDefault()
-  const onCode = !$("#pane-code").hidden
-  const email = $("#email").value.trim().toLowerCase()
-  try {
-    await ensurePrivy()
-    if (!onCode) {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return status("Enter a valid email address.", true)
-      $("#send-code").disabled = true
-      status("Sending your code…")
-      await privy.auth.email.sendCode(email)
-      $("#code-email").textContent = email
-      $("#code").value = ""
-      showPane("code")
-    } else {
-      const code = $("#code").value.replace(/\D/g, "")
-      if (code.length !== 6) return status("Enter the 6-digit code.", true)
-      $("#verify-code").disabled = true
-      status("Verifying…")
-      const u = await privy.auth.email.loginWithCode(email, code)
-      $("#signin").close()
-      await setSignedIn(emailOf(u?.user || u) || email)
-    }
-  } catch (err) {
-    status(err?.message || "Something went wrong. Please try again.", true)
-  } finally {
-    $("#send-code").disabled = false
-    $("#verify-code").disabled = false
-  }
-})
-
-$("#code").addEventListener("input", e => {
-  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6)
-  if (e.target.value.length === 6) $("#signin-form").requestSubmit()
-})
-
 $("#auth-button").addEventListener("click", async () => {
-  if (!userEmail) return openSignin()
-  await ensurePrivy()
-  await privy.auth.logout().catch(() => null)
-  setSignedOut()
+  await signOut(CFG.privyAppId)
+  location.reload() // back to the sign-in gate
 })
 
 async function setSignedIn(email) {
@@ -360,23 +292,14 @@ async function setSignedIn(email) {
   $("#auth-button").textContent = "Sign out"
   $("#mode-chip").textContent = email || "Signed in"
   if (API) {
+    await ensurePrivy()
     live = true
     await loadLive().catch(err => banner(err.message))
   } else {
-    banner(`Signed in as ${email}. Your figures will switch to your own data when bank imports open; until then this view uses your answers.`)
+    banner("Your account is ready. Until bank imports open, this view is built from your answers with illustrative inflation rates.")
     setPreviewControls("Available when bank imports open")
     $("#mode-chip").textContent = email || "Signed in"
   }
-}
-
-function setSignedOut() {
-  userEmail = null
-  live = false
-  $("#auth-button").textContent = "Create account"
-  renderPreview("Sign in to ask about your own numbers")
-  banner(answers?.spending
-    ? "Preview built from your answers, with illustrative inflation rates. Sign in to save it to your account."
-    : "Preview with an illustrative household basket. Sign in to use your own numbers.")
 }
 
 const drop = $("#drop")
@@ -445,38 +368,29 @@ const TOUR = [
 ]
 
 async function startPage() {
-  renderPreview("Sign in to ask about your own numbers")
+  renderPreview("Available when bank imports open")
   if (!AUTH) {
     banner("Preview with an illustrative household basket. Accounts open soon.")
     return
   }
-  setSignedOut()
-  if (!hasStoredSession()) return // no need to load the auth SDK for first-time visitors
-  try {
-    await ensurePrivy()
-    if (await privy.getAccessToken()) {
-      const { user } = await privy.user.get()
-      await setSignedIn(emailOf(user))
-    }
-  } catch {
-    /* stay signed out */
-  }
+  await setSignedIn(userEmail)
 }
 
 $("#redo-setup").addEventListener("click", () => { resetOnboarding(); location.reload() })
 
 async function boot() {
+  // 1. Account first: sign in or create an account (Privy email code).
+  if (AUTH) {
+    userEmail = await currentEmail(CFG.privyAppId)
+    if (!userEmail) userEmail = await runAuthGate(CFG.privyAppId)
+  }
+  // 2. Questionnaire on the first visit.
   if (!answers?.completed) {
     answers = await runOnboarding()
     saveAnswers(answers)
   }
+  // 3. Dashboard, then the guided tour once.
   await startPage()
-  if (answers?.wantsAccount && AUTH && !userEmail) {
-    answers.wantsAccount = false
-    saveAnswers(answers)
-    openSignin()
-    await new Promise(r => $("#signin").addEventListener("close", r, { once: true }))
-  }
   if (!tourDone()) {
     window.scrollTo(0, 0)
     await new Promise(r => setTimeout(r, 450))
