@@ -1,5 +1,5 @@
 // Lumiere product page.
-// Live mode: Supabase session + Lumiere API (see /app/config.js).
+// Accounts: Privy email codes. Live data: Lumiere API with the Privy access token (see /app/config.js).
 // Preview mode (no configuration or signed out): an illustrative basket computed in the browser with the
 // same formulas as the API, labelled as illustrative everywhere it appears.
 
@@ -7,7 +7,8 @@ import { loadAnswers, resetOnboarding, runOnboarding, saveAnswers } from "./onbo
 import { runTour, tourDone } from "./tour.js"
 
 const CFG = window.LUMIERE_CONFIG || {}
-const CONFIGURED = Boolean(CFG.supabaseUrl && CFG.supabaseAnonKey && CFG.apiBaseUrl)
+const AUTH = Boolean(CFG.privyAppId)
+const API = Boolean(CFG.apiBaseUrl)
 const $ = sel => document.querySelector(sel)
 
 const LABELS = {
@@ -18,8 +19,9 @@ const LABELS = {
 const SCENARIO_LABELS = { baseline: "Baseline", lower_inflation: "Lower inflation", higher_inflation: "Higher inflation" }
 
 let currency = "USD"
-let supabase = null
-let session = null
+let privy = null
+let userEmail = null
+let live = false // signed in AND the API is configured
 
 // ------------------------------------------------------------------ formatting
 
@@ -100,7 +102,9 @@ class ApiError extends Error {
 }
 
 async function api(path, init = {}) {
-  const headers = { Authorization: `Bearer ${session.access_token}`, ...(init.headers || {}) }
+  const token = await privy.getAccessToken()
+  if (!token) throw new ApiError(401, "unauthorized", "Your session has expired. Please sign in again.")
+  const headers = { Authorization: `Bearer ${token}`, ...(init.headers || {}) }
   if (init.body && !(init.body instanceof FormData)) headers["Content-Type"] = "application/json"
   const res = await fetch(`${CFG.apiBaseUrl.replace(/\/$/, "")}${path}`, { ...init, headers })
   if (!res.ok) {
@@ -236,7 +240,7 @@ async function loadLive() {
   const me = await api("/me")
   currency = me.base_currency
   $("#currency").textContent = currency
-  $("#mode-chip").textContent = me.email || "Signed in"
+  $("#mode-chip").textContent = me.email || userEmail || "Signed in"
   $("#drop").classList.remove("disabled")
   $("#chat-input").disabled = false
   $("#chat-input").placeholder = "Ask a question"
@@ -259,7 +263,7 @@ async function loadLive() {
 async function calculateCoverage() {
   const reserves = Number($("#reserves").value)
   if (!(reserves > 0)) return
-  if (!session) { renderCoverage(demoCoverage(reserves)); return }
+  if (!live) { renderCoverage(demoCoverage(reserves)); return }
   renderCoverage(await api("/coverage/calculate", { method: "POST", body: JSON.stringify({ reserves, currency }) }))
 }
 
@@ -270,25 +274,114 @@ $("#coverage-form").addEventListener("submit", e => {
   calculateCoverage().catch(err => banner(err.message))
 })
 
-$("#auth-button").addEventListener("click", async () => {
-  if (session) { await supabase.auth.signOut(); return }
-  $("#signin-status").textContent = CONFIGURED ? "" : "Accounts are not open yet. This page shows illustrative data."
-  $("#send-link").disabled = !CONFIGURED
+// ------------------------------------------------------------------ accounts (Privy email code)
+
+const PRIVY_BUNDLE = "/app/vendor/privy-core-0.79.3.js"
+
+async function ensurePrivy() {
+  if (privy) return privy
+  const { Privy, LocalStorage } = await import(PRIVY_BUNDLE)
+  privy = new Privy({ appId: CFG.privyAppId, storage: new LocalStorage() })
+  await privy.initialize()
+  return privy
+}
+
+const emailOf = u => (u?.linked_accounts || []).find(a => a.type === "email")?.address || null
+const hasStoredSession = () => Object.keys(localStorage).some(k => k.startsWith("privy:"))
+
+function status(text, error = false) {
+  const el = $("#signin-status")
+  el.textContent = text || ""
+  el.classList.toggle("error", error)
+}
+
+function showPane(name) {
+  $("#pane-email").hidden = name !== "email"
+  $("#pane-code").hidden = name !== "code"
+  status("")
+  setTimeout(() => $(name === "email" ? "#email" : "#code").focus(), 50)
+}
+
+function openSignin() {
+  if (!AUTH) return
+  showPane("email")
   $("#signin").showModal()
-})
+  ensurePrivy().catch(() => status("Sign-in is temporarily unavailable. Please try again.", true))
+}
+
+$("#signin-close").addEventListener("click", () => $("#signin").close())
+$("#other-email").addEventListener("click", () => showPane("email"))
 
 $("#signin-form").addEventListener("submit", async e => {
-  if (e.submitter?.value !== "send" || !CONFIGURED) return
   e.preventDefault()
-  const email = $("#email").value.trim()
-  $("#signin-status").textContent = "Sending…"
-  const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${location.origin}/app/` } })
-  $("#signin-status").textContent = error ? error.message : "Check your inbox for the sign-in link."
+  const onCode = !$("#pane-code").hidden
+  const email = $("#email").value.trim().toLowerCase()
+  try {
+    await ensurePrivy()
+    if (!onCode) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return status("Enter a valid email address.", true)
+      $("#send-code").disabled = true
+      status("Sending your code…")
+      await privy.auth.email.sendCode(email)
+      $("#code-email").textContent = email
+      $("#code").value = ""
+      showPane("code")
+    } else {
+      const code = $("#code").value.replace(/\D/g, "")
+      if (code.length !== 6) return status("Enter the 6-digit code.", true)
+      $("#verify-code").disabled = true
+      status("Verifying…")
+      const u = await privy.auth.email.loginWithCode(email, code)
+      $("#signin").close()
+      await setSignedIn(emailOf(u?.user || u) || email)
+    }
+  } catch (err) {
+    status(err?.message || "Something went wrong. Please try again.", true)
+  } finally {
+    $("#send-code").disabled = false
+    $("#verify-code").disabled = false
+  }
 })
+
+$("#code").addEventListener("input", e => {
+  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6)
+  if (e.target.value.length === 6) $("#signin-form").requestSubmit()
+})
+
+$("#auth-button").addEventListener("click", async () => {
+  if (!userEmail) return openSignin()
+  await ensurePrivy()
+  await privy.auth.logout().catch(() => null)
+  setSignedOut()
+})
+
+async function setSignedIn(email) {
+  userEmail = email
+  $("#auth-button").textContent = "Sign out"
+  $("#mode-chip").textContent = email || "Signed in"
+  if (API) {
+    live = true
+    await loadLive().catch(err => banner(err.message))
+  } else {
+    banner(`Signed in as ${email}. Your figures will switch to your own data when bank imports open; until then this view uses your answers.`)
+    setPreviewControls("Available when bank imports open")
+    $("#mode-chip").textContent = email || "Signed in"
+  }
+}
+
+function setSignedOut() {
+  userEmail = null
+  live = false
+  $("#auth-button").textContent = "Create account"
+  renderPreview("Sign in to ask about your own numbers")
+  banner(answers?.spending
+    ? "Preview built from your answers, with illustrative inflation rates. Sign in to save it to your account."
+    : "Preview with an illustrative household basket. Sign in to use your own numbers.")
+}
 
 const drop = $("#drop")
 const upload = async file => {
-  if (!session || !file) return
+  if (!live || !file) return
   const form = new FormData()
   form.append("file", file)
   $("#import-status").textContent = "Importing…"
@@ -302,14 +395,14 @@ const upload = async file => {
   }
 }
 $("#file").addEventListener("change", e => upload(e.target.files[0]))
-drop.addEventListener("dragover", e => { e.preventDefault(); if (session) drop.classList.add("over") })
+drop.addEventListener("dragover", e => { e.preventDefault(); if (live) drop.classList.add("over") })
 drop.addEventListener("dragleave", () => drop.classList.remove("over"))
 drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); upload(e.dataTransfer.files[0]) })
-drop.addEventListener("click", e => { if (!session) e.preventDefault() })
+drop.addEventListener("click", e => { if (!live) e.preventDefault() })
 
 let conversationId = null
 async function ask(text) {
-  if (!session || !text) return
+  if (!live || !text) return
   addMessage("user", text)
   $("#chat-input").value = ""
   try {
@@ -352,27 +445,22 @@ const TOUR = [
 ]
 
 async function startPage() {
-  if (!CONFIGURED) {
-    renderPreview("Accounts are not open yet")
-    banner(answers?.spending
-      ? "Preview built from your answers, with illustrative inflation rates. Your own data will be available when accounts open."
-      : "Preview with an illustrative household basket. Sign-in and your own data will be available when accounts open.")
+  renderPreview("Sign in to ask about your own numbers")
+  if (!AUTH) {
+    banner("Preview with an illustrative household basket. Accounts open soon.")
     return
   }
-  const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2")
-  supabase = createClient(CFG.supabaseUrl, CFG.supabaseAnonKey)
-  const apply = async s => {
-    session = s
-    $("#auth-button").textContent = s ? "Sign out" : "Sign in"
-    if (s) await loadLive().catch(err => banner(err.message))
-    else {
-      renderPreview("Sign in to ask about your own numbers")
-      banner("You are viewing an estimate built from your answers. Sign in to see your own numbers.")
+  setSignedOut()
+  if (!hasStoredSession()) return // no need to load the auth SDK for first-time visitors
+  try {
+    await ensurePrivy()
+    if (await privy.getAccessToken()) {
+      const { user } = await privy.user.get()
+      await setSignedIn(emailOf(user))
     }
+  } catch {
+    /* stay signed out */
   }
-  const { data } = await supabase.auth.getSession()
-  await apply(data.session)
-  supabase.auth.onAuthStateChange((_event, s) => { if ((s?.access_token) !== (session?.access_token)) apply(s) })
 }
 
 $("#redo-setup").addEventListener("click", () => { resetOnboarding(); location.reload() })
@@ -383,6 +471,12 @@ async function boot() {
     saveAnswers(answers)
   }
   await startPage()
+  if (answers?.wantsAccount && AUTH && !userEmail) {
+    answers.wantsAccount = false
+    saveAnswers(answers)
+    openSignin()
+    await new Promise(r => $("#signin").addEventListener("close", r, { once: true }))
+  }
   if (!tourDone()) {
     window.scrollTo(0, 0)
     await new Promise(r => setTimeout(r, 450))

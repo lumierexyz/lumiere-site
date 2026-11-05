@@ -153,13 +153,28 @@ main { max-width: var(--max); margin: 0 auto; padding: 8px 0 64px; }
 .chat-form input:focus, .input-row:focus-within { border-color: var(--accent-ink); }
 .chat-form input:disabled { opacity: .6; }
 
-/* dialog */
-.signin { border: 0; border-radius: 16px; padding: 28px; width: min(420px, 92vw); color: var(--ink); }
-.signin::backdrop { background: rgba(7, 17, 29, .45); }
-.signin h2 { font: 300 30px/1.1 "Teodor", serif; }
-.signin p { color: var(--ink-2); }
-.signin input { width: 100%; height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--radius); margin: 8px 0 16px; }
-.dialog-actions { display: flex; gap: 8px; justify-content: flex-end; }
+/* sign-in dialog */
+.signin { border: 0; border-radius: 20px; padding: 32px; width: min(420px, 92vw); color: var(--ink); overflow: visible;
+  box-shadow: 0 40px 80px -24px rgba(7, 17, 29, .35); }
+.signin[open] { animation: dlg-in .45s cubic-bezier(.2, .8, .2, 1); }
+.signin::backdrop { background: rgba(7, 17, 29, .35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.signin h2 { font: 300 30px/1.1 "Teodor", serif; margin-right: 32px; }
+.signin p { color: var(--ink-2); margin: 10px 0 18px; }
+.signin input { width: 100%; height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--canvas); outline: none; font-size: 16px; transition: border-color .2s; }
+.signin input:focus { border-color: var(--accent-ink); }
+.signin .code-input { text-align: center; letter-spacing: .5em; font-size: 24px; font-variant-numeric: tabular-nums; }
+.signin .wide { width: 100%; justify-content: center; height: 48px; margin-top: 12px; }
+.signin-pane { animation: pane-in .4s cubic-bezier(.2, .8, .2, 1); }
+.signin-pane .linkish { display: block; margin: 14px auto 0; color: var(--ink-2); }
+.signin-close { position: absolute; top: 20px; right: 20px; width: 32px; height: 32px; border: 0; border-radius: 10px;
+  background: var(--canvas); cursor: pointer; display: grid; place-items: center; }
+.signin-close svg { width: 14px; height: 14px; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; }
+.signin-status { min-height: 1.4em; margin: 14px 0 0 !important; font-size: 13px; }
+.signin-status.error { color: #b3261e !important; }
+.signin-legal { margin: 8px 0 0 !important; font-size: 11px; color: var(--ink-3) !important; }
+@keyframes dlg-in { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes pane-in { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
 
 .site-foot { max-width: var(--max); margin: 0 auto; padding: 0 0 48px; display: flex; justify-content: space-between; gap: 24px;
   font-size: 12px; color: var(--ink-3); }

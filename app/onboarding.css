@@ -141,3 +141,7 @@ body.touring .topbar { position: sticky; }
 .ob input[type=number]::-webkit-inner-spin-button, .ob input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .ob input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 [data-tour-blur] { scroll-margin-top: 88px; }
+
+.ob-actions.stack { flex-direction: column; gap: 10px; }
+.ob-btn.ghost-light { background: none; color: rgba(255, 255, 255, .8); text-transform: none; letter-spacing: 0; font-weight: 400; }
+.ob-btn.ghost-light:hover { background: none; color: #fff; }

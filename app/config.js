@@ -1,8 +1,6 @@
 // Public configuration for the Lumiere product page.
-// Fill these once Supabase and the API are deployed. The anon key is public by design (RLS protects data);
-// never put the service-role key here.
+// The Privy app id is public by design. The Privy app secret lives only on the API server.
 window.LUMIERE_CONFIG = {
-  supabaseUrl: "",
-  supabaseAnonKey: "",
-  apiBaseUrl: "", // e.g. https://lumiere-api-xxxx.a.run.app/api/v1
+  privyAppId: "cmw3z718w01lh0gjtesutilhz",
+  apiBaseUrl: "", // e.g. https://lumiere-api-xxxx.a.run.app/api/v1 (set once the API is deployed)
 }

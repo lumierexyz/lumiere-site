@@ -28,7 +28,7 @@
     </nav>
     <div class="account">
       <span class="chip" id="mode-chip">Illustrative data</span>
-      <button class="pill accent" id="auth-button" type="button">Sign in</button>
+      <button class="pill accent" id="auth-button" type="button">Create account</button>
     </div>
   </header>
 
@@ -123,15 +123,26 @@
   </main>
 
   <dialog class="signin" id="signin">
-    <form method="dialog" id="signin-form">
-      <h2>Sign in to Lumiere</h2>
-      <p>We will email you a sign-in link.</p>
-      <input id="email" type="email" required placeholder="you@example.com" autocomplete="email">
-      <div class="dialog-actions">
-        <button class="pill" value="cancel" formnovalidate>Cancel</button>
-        <button class="pill dark" id="send-link" value="send">Send link</button>
+    <form id="signin-form" novalidate>
+      <button type="button" class="signin-close" id="signin-close" aria-label="Close">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>
+      </button>
+      <div class="signin-pane" id="pane-email">
+        <h2>Sign in or create an account</h2>
+        <p>Enter your email. We will send you a 6-digit code.</p>
+        <input id="email" type="email" required placeholder="you@example.com" autocomplete="email" inputmode="email">
+        <button class="pill dark wide" id="send-code" type="submit">Continue</button>
       </div>
-      <p class="foot" id="signin-status"></p>
+      <div class="signin-pane" id="pane-code" hidden>
+        <h2>Check your inbox</h2>
+        <p>Enter the code sent to <strong id="code-email"></strong>.</p>
+        <input id="code" type="text" required inputmode="numeric" autocomplete="one-time-code" maxlength="6"
+               pattern="[0-9]{6}" placeholder="000000" class="code-input">
+        <button class="pill dark wide" id="verify-code" type="submit">Verify</button>
+        <button class="linkish" id="other-email" type="button">Use another email</button>
+      </div>
+      <p class="signin-status" id="signin-status" role="status"></p>
+      <p class="signin-legal">Secured by Privy. Creating an account does not connect any bank or wallet.</p>
     </form>
   </dialog>
 
