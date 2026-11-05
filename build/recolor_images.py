@@ -34,7 +34,7 @@ def shift(rgb):
 
 for dp, _, fs in os.walk(ROOT):
     for fn in fs:
-        if not fn.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')) or fn.startswith(('mhaUGIOzx', 'd8FwOPCx', 'rgMexOrPs', 'lumiere-')):
+        if not fn.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')) or fn.startswith(('mhaUGIOzx', 'd8FwOPCx', 'rgMexOrPs', 'lumiere-', 's5jGaCyUQ')):
             continue
         p = os.path.join(dp, fn)
         im = Image.open(p)

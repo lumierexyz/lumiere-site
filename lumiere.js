@@ -183,7 +183,25 @@
     })
   }
 
+  // Fond de l'aperçu d'app : même dégradé animé que sous le titre
+  function fixPreviewBackground() {
+    const wrap = document.querySelector('#lumiere-preview > [data-framer-background-image-wrapper]')
+    if (!wrap || wrap.querySelector("video.lumiere-bg")) return
+    const v = document.createElement("video")
+    v.className = "lumiere-bg"
+    v.src = "/assets/media/lumiere-hero.mp4"
+    v.poster = "/assets/media/lumiere-hero-poster.jpg"
+    v.muted = true
+    v.loop = true
+    v.autoplay = true
+    v.playsInline = true
+    v.setAttribute("aria-hidden", "true")
+    wrap.append(v)
+    v.play().catch(() => {})
+  }
+
   function apply() {
+    fixPreviewBackground()
     fixFooter()
     assignIds()
     fixLinks()

@@ -122,3 +122,9 @@ h6.lumiere-wrap { max-width: 220px; }
 /* DM Sans remplace ABC Diatype (fichiers de police substitués) : l'interlettrage négatif
    réglé pour Diatype serre trop DM Sans sur les intertitres */
 h4.framer-text, h5.framer-text, .lumiere-about h2 { letter-spacing: -0.01em !important; }
+
+/* Vidéo de fond de l'aperçu d'app, posée sur l'image de repli */
+#lumiere-preview video.lumiere-bg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; border-radius: inherit; display: block;
+}
