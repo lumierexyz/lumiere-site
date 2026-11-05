@@ -221,6 +221,16 @@
       img.alt = "Lumiere"
       img.closest(".framer-vvTG2")?.classList.add("lumiere-footer-logo")
     })
+    if (!foot.querySelector(":scope > a.lumiere-x")) {
+      const x = document.createElement("a")
+      x.className = "lumiere-x"
+      x.href = "https://x.com/Lumierexyz"
+      x.target = "_blank"
+      x.rel = "noopener"
+      x.setAttribute("aria-label", "Lumiere on X")
+      x.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3Zm-1.08 16.2h1.7L7.4 4.72H5.58L16.67 19.2Z"/></svg><span>@Lumierexyz</span>'
+      foot.append(x)
+    }
   }
 
   function apply() {

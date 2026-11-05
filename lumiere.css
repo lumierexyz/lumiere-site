@@ -144,3 +144,12 @@ h4.framer-text, h5.framer-text, .lumiere-about h2 { letter-spacing: -0.01em !imp
     background: linear-gradient(180deg, rgba(7, 17, 29, 0.15) 0%, rgba(7, 17, 29, 0.7) 100%);
   }
 }
+
+/* Lien X dans le pied de page */
+.lumiere-footer > a.lumiere-x { position: absolute !important; top: 28px; right: 28px; z-index: 2; display: inline-flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 16px 0 12px; border-radius: 999px; background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .28);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #fff; text-decoration: none; font: 500 14px/1 "DM Sans", sans-serif;
+  transition: background-color .2s; }
+.lumiere-footer > a.lumiere-x:hover { background: rgba(255, 255, 255, .24); }
+.lumiere-footer > a.lumiere-x svg { width: 16px; height: 16px; fill: currentColor; }
+@media (max-width: 809px) { .lumiere-footer > a.lumiere-x { top: 18px; right: 18px; } }

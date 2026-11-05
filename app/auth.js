@@ -79,7 +79,6 @@ export function runAuthGate(appId, { initialMode = "signup" } = {}) {
             <li>Creating an account does not connect any bank or wallet.</li>
           </ul>
         </div>
-        <p class="auth-foot">Lumiere is an early-stage project. <a href="/">Back to site</a></p>
       </section>
       <aside class="auth-visual" aria-hidden="true">
         <video src="/assets/media/lumiere-hero.mp4" poster="/assets/media/lumiere-hero-poster.jpg" autoplay muted loop playsinline></video>
