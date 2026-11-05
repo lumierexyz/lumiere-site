@@ -62,15 +62,33 @@ def mark_svg(size=221, color='#A8C5EB'):
             + svg_paths(off, off, s, color) + '\n</svg>\n')
 
 
+def clean_icon(n):
+    """Symbole blanc officiel (logo3.png) centré sur le dégradé bleu du visuel d'origine."""
+    k = 4
+    N = n * k
+    bg = Image.new('RGB', (N, N))
+    top, bot = (60, 100, 151), (91, 134, 189)
+    d = ImageDraw.Draw(bg)
+    for y in range(N):
+        t = y / (N - 1)
+        d.line([(0, y), (N, y)], fill=tuple(round(a + (b - a) * t) for a, b in zip(top, bot)))
+    logo = Image.open(os.path.join(ROOT, 'build/logo3.png')).convert('RGBA')
+    s = round(N * 0.46)
+    logo = logo.resize((s, round(s * logo.height / logo.width)), Image.LANCZOS)
+    bg = bg.convert('RGBA')
+    bg.alpha_composite(logo, ((N - logo.width) // 2, (N - logo.height) // 2))
+    return bg.convert('RGB').resize((n, n), Image.LANCZOS)
+
+
 def write_icons():
-    src = Image.open(SRC).convert('RGB')
+    src = clean_icon(1024)
     # Icône d'app (GIF 200x200, le nom de fichier d'origine est conservé)
     icon = src.resize((200, 200), Image.LANCZOS)
     for p in ['assets/a0j6ey3g5tCiaXgIElavjeyF6Sw.__q-f623e9773574.gif',
               'assets/images/a0j6ey3g5tCiaXgIElavjeyF6Sw.__q-f623e9773574.gif']:
         icon.quantize(256, method=Image.Quantize.MEDIANCUT).save(os.path.join(ROOT, p))
     for n, name in [(32, 'favicon-32x32.png'), (16, 'favicon-16x16.png'), (180, 'apple-touch-icon.png')]:
-        src.resize((n, n), Image.LANCZOS).save(os.path.join(ROOT, name))
+        clean_icon(n).save(os.path.join(ROOT, name))
     src.resize((512, 512), Image.LANCZOS).save(os.path.join(ROOT, 'assets/lumiere-icon-512.png'))
 
 
