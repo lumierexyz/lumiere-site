@@ -128,3 +128,19 @@ h4.framer-text, h5.framer-text, .lumiere-about h2 { letter-spacing: -0.01em !imp
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; border-radius: inherit; display: block;
 }
+
+/* Pied de page sur le dégradé animé (retourné : partie sombre en haut, sous le texte) */
+.lumiere-footer { position: relative; isolation: isolate; overflow: hidden; background-color: #07111d !important; }
+.lumiere-footer > video.lumiere-bg {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  transform: rotate(180deg); z-index: -1; pointer-events: none;
+}
+.lumiere-footer > *:not(video) { position: relative; }
+.lumiere-footer-logo { background: transparent !important; box-shadow: none !important; }
+.lumiere-footer-logo img { object-fit: contain !important; }
+@media (max-width: 809.98px) {
+  .lumiere-footer::after {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: linear-gradient(180deg, rgba(7, 17, 29, 0.15) 0%, rgba(7, 17, 29, 0.7) 100%);
+  }
+}

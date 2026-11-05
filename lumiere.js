@@ -200,7 +200,31 @@
     v.play().catch(() => {})
   }
 
+  // Pied de page : dégradé animé en fond + logo PNG blanc
+  function fixFooter2() {
+    const foot = document.querySelector(".framer-5kur7")
+    if (!foot) return
+    foot.classList.add("lumiere-footer")
+    if (!foot.querySelector(":scope > video.lumiere-bg")) {
+      const v = document.createElement("video")
+      v.className = "lumiere-bg"
+      v.src = "/assets/media/lumiere-hero.mp4"
+      v.poster = "/assets/media/lumiere-hero-poster.jpg"
+      v.muted = v.loop = v.autoplay = v.playsInline = true
+      v.setAttribute("aria-hidden", "true")
+      foot.prepend(v)
+      v.play().catch(() => {})
+    }
+    foot.querySelectorAll('img[src*="a0j6ey3g5tCiaXgIElavjeyF6Sw"]').forEach(img => {
+      img.removeAttribute("srcset")
+      img.src = "/assets/lumiere-logo-white.png"
+      img.alt = "Lumiere"
+      img.closest(".framer-vvTG2")?.classList.add("lumiere-footer-logo")
+    })
+  }
+
   function apply() {
+    fixFooter2()
     fixPreviewBackground()
     fixFooter()
     assignIds()
