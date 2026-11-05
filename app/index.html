@@ -12,9 +12,10 @@
   <link rel="preload" href="/assets/files/HpzDfYONwF3qmrWsKXaJbZfUg.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/files/Gx3MGZkSYrrmCVe9sdeh0yV84qk.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/app/app.css">
+  <link rel="stylesheet" href="/app/onboarding.css">
 </head>
 <body>
-  <header class="topbar">
+  <header class="topbar" data-tour-blur>
     <a class="pill brand" href="/" aria-label="Lumiere home">
       <svg viewBox="0 0 308 308" aria-hidden="true"><path d="M2 2L95 2L213 183L2 125Z"/><path d="M217 2L307 2L307 125L217 180Z"/><path d="M2 185L205 185L52 292L2 245Z"/><path d="M95 305L210 192L183 305Z"/><path d="M217 187L307 187L307 245L247 307L217 307Z"/></svg>
       <span>Lumiere</span>
@@ -32,7 +33,7 @@
   </header>
 
   <main>
-    <section class="hero" id="overview">
+    <section class="hero" id="overview" data-tour-blur>
       <video class="hero-bg" src="/assets/media/lumiere-hero.mp4" poster="/assets/media/lumiere-hero-poster.jpg"
              autoplay muted loop playsinline aria-hidden="true"></video>
       <div class="hero-inner">
@@ -52,10 +53,10 @@
       </div>
     </section>
 
-    <div class="banner" id="banner" hidden></div>
+    <div class="banner" id="banner" hidden data-tour-blur></div>
 
     <section class="grid">
-      <article class="card span-8">
+      <article class="card span-8" id="history" data-tour-blur>
         <header class="card-head">
           <div><p class="label">Index history</p><h2>Your basket vs. headline inflation</h2></div>
           <div class="legend"><span><i class="sw sw-pei"></i>Your index</span><span><i class="sw sw-head"></i>Headline</span></div>
@@ -64,7 +65,7 @@
         <p class="foot" id="pei-foot">Base = 100.</p>
       </article>
 
-      <article class="card span-4" id="coverage">
+      <article class="card span-4" id="coverage" data-tour-blur>
         <header class="card-head"><div><p class="label">Future expense coverage</p><h2>How long your reserves last</h2></div></header>
         <form class="coverage-form" id="coverage-form">
           <label for="reserves">Reserves</label>
@@ -78,7 +79,7 @@
         <p class="foot">Projected costs grow with category inflation. Reserves are your own estimate and are not verified.</p>
       </article>
 
-      <article class="card span-6" id="spending">
+      <article class="card span-6" id="spending" data-tour-blur>
         <header class="card-head">
           <div><p class="label">Spending</p><h2>Where your money goes</h2></div>
           <div class="stat"><span class="k">Monthly average</span><span class="v" id="avg-monthly">—</span></div>
@@ -86,7 +87,7 @@
         <ol class="bars" id="category-bars"></ol>
       </article>
 
-      <article class="card span-6" id="projections">
+      <article class="card span-6" id="projections" data-tour-blur>
         <header class="card-head">
           <div><p class="label">Next 12 months</p><h2>Projected living costs</h2></div>
         </header>
@@ -94,7 +95,7 @@
         <p class="foot">Conditional projections under the stated inflation assumptions, not predictions.</p>
       </article>
 
-      <article class="card span-4" id="import">
+      <article class="card span-4" id="import" data-tour-blur>
         <header class="card-head"><div><p class="label">Data</p><h2>Import a bank statement</h2></div></header>
         <label class="drop" id="drop">
           <input type="file" id="file" accept=".csv,text/csv" hidden>
@@ -104,7 +105,7 @@
         <p class="foot" id="import-status">Card and account numbers are masked before storage. The original file is not kept.</p>
       </article>
 
-      <article class="card span-8" id="assistant">
+      <article class="card span-8" id="assistant" data-tour-blur>
         <header class="card-head"><div><p class="label">Assistant</p><h2>Ask about your numbers</h2></div></header>
         <div class="chat" id="chat" aria-live="polite"></div>
         <div class="suggestions" id="suggestions">
@@ -134,9 +135,9 @@
     </form>
   </dialog>
 
-  <footer class="site-foot">
+  <footer class="site-foot" data-tour-blur>
     <span>Lumiere is an early-stage project. Figures are estimates based on official statistics and your own data; they are not guarantees or financial advice.</span>
-    <a href="/">Back to site</a>
+    <span class="foot-links"><button type="button" class="linkish" id="redo-setup">Redo setup</button><a href="/">Back to site</a></span>
   </footer>
 
   <script src="/app/config.js"></script>

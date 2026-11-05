@@ -3,6 +3,9 @@
 // Preview mode (no configuration or signed out): an illustrative basket computed in the browser with the
 // same formulas as the API, labelled as illustrative everywhere it appears.
 
+import { loadAnswers, resetOnboarding, runOnboarding, saveAnswers } from "./onboarding.js"
+import { runTour, tourDone } from "./tour.js"
+
 const CFG = window.LUMIERE_CONFIG || {}
 const CONFIGURED = Boolean(CFG.supabaseUrl && CFG.supabaseAnonKey && CFG.apiBaseUrl)
 const $ = sel => document.querySelector(sel)
@@ -31,9 +34,18 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;"
 
 const DEMO = {
   base: { housing: 1500, groceries: 420, transportation: 210, restaurants: 160, energy: 130, healthcare: 95, entertainment: 70, subscriptions: 48 },
-  inflation: { housing: 0.042, groceries: 0.021, transportation: 0.018, restaurants: 0.036, energy: 0.065, healthcare: 0.031, entertainment: 0.02, subscriptions: 0.012 },
+  inflation: { housing: 0.042, groceries: 0.021, transportation: 0.018, restaurants: 0.036, energy: 0.065, healthcare: 0.031,
+               entertainment: 0.02, subscriptions: 0.012, other: 0.029 },
   headline: 0.029,
   months: 21, // 2025-01 .. 2026-09
+}
+let answers = loadAnswers()
+
+function applyAnswers() {
+  if (!answers?.spending) return
+  const base = Object.fromEntries(Object.entries(answers.spending).filter(([, v]) => v > 0))
+  if (Object.keys(base).length) DEMO.base = base
+  if (answers.reserves > 0) $("#reserves").value = Math.round(answers.reserves)
 }
 
 function demoData() {
@@ -139,7 +151,8 @@ function renderChart(history, illustrative) {
   g += `<text x="${x(history.length - 1) + 8}" y="${y(last.pei) + 4}" style="fill:#07111d">${last.pei.toFixed(1)}</text>`
   el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${g}</svg>`
   $("#pei-foot").textContent = `Base ${monthLabel(history[0].month)} = 100.` +
-    (illustrative ? " Illustrative basket and inflation rates." : " Category prices from official statistics.")
+    (illustrative ? (answers?.spending ? " Built from your answers with illustrative inflation rates." : " Illustrative basket and inflation rates.")
+                  : " Category prices from official statistics.")
 }
 
 function renderCategories(summary) {
@@ -200,8 +213,9 @@ function setPreviewControls(reason) {
 }
 
 function renderPreview(reason) {
+  applyAnswers()
   const d = demoData()
-  currency = "USD"
+  currency = answers?.currency || "USD"
   $("#currency").textContent = currency
   renderPei(d.pei)
   renderChart(d.history, true)
@@ -212,6 +226,13 @@ function renderPreview(reason) {
 }
 
 async function loadLive() {
+  if (answers?.completed && !answers.synced) {
+    const body = { base_currency: answers.currency }
+    if (answers.country && answers.country !== "XX") body.country = answers.country
+    await api("/me", { method: "PATCH", body: JSON.stringify(body) }).catch(() => null)
+    answers.synced = true
+    saveAnswers(answers)
+  }
   const me = await api("/me")
   currency = me.base_currency
   $("#currency").textContent = currency
@@ -313,10 +334,29 @@ new ResizeObserver(entries => {
 
 // ------------------------------------------------------------------ boot
 
-async function boot() {
+const TOUR = [
+  { target: "#overview", title: "Your Personal Expense Index",
+    body: "It starts at 100 and shows how the cost of your own spending basket has moved at official category prices. The three figures compare it with headline inflation." },
+  { target: "#history", title: "Your basket vs. the average",
+    body: "When your line sits above the grey one, the things you buy are getting more expensive faster than the national average." },
+  { target: "#coverage", title: "How long your reserves last",
+    body: "Reserves are drawn down against projected costs month by month, including inflation. Change the amount to see how it moves." },
+  { target: "#spending", title: "Where your money goes",
+    body: "Your categories and their weight in the index. The biggest categories drive most of your exposure to rising prices." },
+  { target: "#projections", title: "The next 12 months",
+    body: "Projected living costs under three inflation scenarios. They are conditional estimates, not predictions." },
+  { target: "#import", title: "Switch to real numbers",
+    body: "Import a bank statement and these estimates are replaced by your actual spending, categorised automatically." },
+  { target: "#assistant", title: "Ask in plain language",
+    body: "The assistant answers with figures computed from your data, and shows where each number comes from." },
+]
+
+async function startPage() {
   if (!CONFIGURED) {
     renderPreview("Accounts are not open yet")
-    banner("Preview with an illustrative household basket. Sign-in and your own data will be available when accounts open.")
+    banner(answers?.spending
+      ? "Preview built from your answers, with illustrative inflation rates. Your own data will be available when accounts open."
+      : "Preview with an illustrative household basket. Sign-in and your own data will be available when accounts open.")
     return
   }
   const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2")
@@ -327,12 +367,27 @@ async function boot() {
     if (s) await loadLive().catch(err => banner(err.message))
     else {
       renderPreview("Sign in to ask about your own numbers")
-      banner("You are viewing an illustrative basket. Sign in to see your own numbers.")
+      banner("You are viewing an estimate built from your answers. Sign in to see your own numbers.")
     }
   }
   const { data } = await supabase.auth.getSession()
   await apply(data.session)
   supabase.auth.onAuthStateChange((_event, s) => { if ((s?.access_token) !== (session?.access_token)) apply(s) })
+}
+
+$("#redo-setup").addEventListener("click", () => { resetOnboarding(); location.reload() })
+
+async function boot() {
+  if (!answers?.completed) {
+    answers = await runOnboarding()
+    saveAnswers(answers)
+  }
+  await startPage()
+  if (!tourDone()) {
+    window.scrollTo(0, 0)
+    await new Promise(r => setTimeout(r, 450))
+    await runTour(TOUR)
+  }
 }
 
 boot()

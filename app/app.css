@@ -185,3 +185,6 @@ main { max-width: var(--max); margin: 0 auto; padding: 8px 0 64px; }
   .bars .bar { grid-column: 1 / -1; grid-row: 2; }
   .site-foot { flex-direction: column; }
 }
+
+.foot-links { display: flex; gap: 16px; white-space: nowrap; }
+.linkish { border: 0; background: none; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font-size: 12px; }
