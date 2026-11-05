@@ -5,7 +5,7 @@
 
 import { loadAnswers, resetOnboarding, runOnboarding, saveAnswers, scopeOnboarding } from "./onboarding.js"
 import { runTour, scopeTour, tourDone } from "./tour.js"
-import { getPrivy, currentUser, runAuthGate, signOut } from "./auth.js"
+import { getPrivy, currentUser, linkWallet, runAuthGate, signOut } from "./auth.js"
 
 const CFG = window.LUMIERE_CONFIG || {}
 const AUTH = Boolean(CFG.privyAppId)
@@ -277,6 +277,7 @@ async function loadLive() {
   $("#chat-input").placeholder = "Ask a question"
   document.querySelectorAll("#suggestions .pill, #chat-form .pill").forEach(b => (b.disabled = false))
   banner(welcomeBanner())
+  loadOnchain()
   let hasData = false
   const tasks = [
     api("/expenses/summary").then(s => { if (s.has_data) { hasData = true; renderCategories(s); banner("") } }),
@@ -294,10 +295,103 @@ async function loadLive() {
 
 async function calculateCoverage() {
   const reserves = Number($("#reserves").value)
-  if (!(reserves > 0)) return
+  const fromChain = reservesSource === "onchain"
+  if (!fromChain && !(reserves > 0)) return
   if (!live) { renderCoverage(demoCoverage(reserves)); return }
-  renderCoverage(await api("/coverage/calculate", { method: "POST", body: JSON.stringify({ reserves, currency }) }))
+  const body = fromChain ? { reserves_source: "onchain" } : { reserves, currency }
+  try {
+    const r = await api("/coverage/calculate", { method: "POST", body: JSON.stringify(body) })
+    renderCoverage(r)
+    setCoverageFoot(r.reserves.verified)
+  } catch (err) {
+    // No spending history yet: with verified wallet reserves, give a flat estimate from the questionnaire.
+    if (err.code === "insufficient_data" && fromChain && onchain?.total > 0) { renderEstimate(onchain.total); return }
+    throw err
+  }
 }
+
+function setCoverageFoot(verified) {
+  $("#coverage-foot").textContent = verified
+    ? "Reserves are the balances of your linked wallets on Robinhood Chain at current prices. Prices move; nothing can be moved from here."
+    : "Projected costs grow with category inflation. Reserves are your own estimate and are not verified."
+}
+
+function renderEstimate(amount) {
+  const monthly = Object.values(answers?.spending || {}).reduce((t, v) => t + (v > 0 ? v : 0), 0)
+  if (!(monthly > 0)) { renderCoverage(null); return }
+  const m = amount / monthly
+  $("#coverage-out").innerHTML = `
+    <div class="cov-row estimate">
+      <span class="name">At your estimated ${esc(money(monthly))} a month, flat prices</span>
+      <span class="months">${m.toFixed(1)} mo</span>
+      <span class="track"><span class="fill" style="display:block;width:100%"></span></span>
+    </div>`
+  $("#coverage-foot").textContent = "Estimate from your questionnaire answers. Import a bank statement for projections with inflation."
+}
+
+// ------------------------------------------------------------------ on-chain reserves (Robinhood Chain)
+
+let reservesSource = "declared"
+let onchain = null
+const shortAddr = a => `${a.slice(0, 6)}…${a.slice(-4)}`
+const fmtAmount = v => v.toLocaleString("en-US", { maximumFractionDigits: v >= 1000 ? 0 : v < 1 ? 4 : 2 })
+
+async function loadOnchain() {
+  const box = $("#onchain"), body = $("#onchain-body")
+  box.hidden = false
+  body.innerHTML = "<p>Reading balances on Robinhood Chain…</p>"
+  try {
+    onchain = await api("/reserves/onchain")
+  } catch (err) {
+    body.innerHTML = `<p class="err">${esc(err.message)}</p>`
+    return
+  }
+  $("#onchain-badge").hidden = !onchain.verified
+  if (!onchain.wallets.length) {
+    body.innerHTML = `<p>Link a wallet to use its balances on Robinhood Chain as verified reserves. You sign a message in MetaMask: no transaction, no fees.</p>
+      <div class="actions"><button class="pill dark" type="button" data-link>Link MetaMask</button></div>`
+  } else {
+    const priced = onchain.total != null
+    const fmt = v => new Intl.NumberFormat("en-US", { style: "currency", currency: priced ? onchain.base_currency : "USD", maximumFractionDigits: 0 }).format(v)
+    const rows = onchain.holdings.slice(0, 5).map(h => `
+      <li><span class="sym">${esc(h.symbol)}</span>
+          <span class="amt">${fmtAmount(h.amount)}${h.kind === "equity" ? " sh" : ""}</span>
+          <span class="val">${h.value_usd == null ? "no price" : fmt(priced ? h.value : h.value_usd)}</span></li>`).join("")
+    const total = priced ? onchain.total : onchain.total_usd
+    body.innerHTML = `<div class="total">${fmt(total)}</div>
+      <div class="wallets">${onchain.wallets.map(shortAddr).join(" · ")}</div>
+      ${rows ? `<ul>${rows}</ul>` : "<p>No supported assets in this wallet yet: ETH, USDG, cbBTC, TAO and stock tokens are counted.</p>"}
+      ${onchain.holdings.length > 5 ? `<p>+ ${onchain.holdings.length - 5} more assets</p>` : ""}
+      <div class="actions">${priced && total > 0 ? '<button class="pill dark" type="button" data-use>Use as reserves</button>' : ""}
+        <button class="pill" type="button" data-link>Link another wallet</button></div>`
+  }
+  body.querySelector("[data-link]")?.addEventListener("click", linkMetaMask)
+  body.querySelector("[data-use]")?.addEventListener("click", useOnchain)
+}
+
+async function linkMetaMask(e) {
+  const btn = e.currentTarget
+  const label = btn.textContent
+  btn.disabled = true
+  btn.textContent = "Confirm in MetaMask…"
+  try {
+    await linkWallet(CFG.privyAppId)
+    await loadOnchain()
+  } catch (err) {
+    btn.disabled = false
+    btn.textContent = label
+    const msg = err?.code === 4001 || /reject|denied/i.test(err?.message || "") ? "The request was cancelled in MetaMask." : err?.message || "The wallet could not be linked."
+    $("#onchain-body").querySelector(".err")?.remove()
+    $("#onchain-body").insertAdjacentHTML("beforeend", `<p class="err">${esc(msg)}</p>`)
+  }
+}
+
+function useOnchain() {
+  reservesSource = "onchain"
+  $("#reserves").value = Math.round(onchain.total)
+  calculateCoverage().catch(err => banner(err.message))
+}
+$("#reserves").addEventListener("input", () => { reservesSource = "declared"; setCoverageFoot(false) })
 
 // ------------------------------------------------------------------ events
 

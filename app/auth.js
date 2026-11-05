@@ -41,6 +41,20 @@ function metamask() {
   return list.find(x => x.isMetaMask) || null
 }
 
+/** Link a MetaMask wallet to the signed-in account (signature only, no transaction). */
+export async function linkWallet(appId) {
+  const eth = metamask()
+  if (!eth) throw new Error("MetaMask was not found in this browser. Install it from metamask.io, then reload this page.")
+  const [address] = await eth.request({ method: "eth_requestAccounts" })
+  const chainId = parseInt(await eth.request({ method: "eth_chainId" }), 16)
+  const wallet = { address, chainId: `eip155:${chainId}`, walletClientType: "metamask", connectorType: "injected" }
+  const p = await getPrivy(appId)
+  const { message } = await p.auth.siwe.init(wallet, location.host, location.origin)
+  const signature = await eth.request({ method: "personal_sign", params: [message, address] })
+  await p.auth.siwe.linkWithSiwe(signature, wallet, message)
+  return address
+}
+
 export async function signOut(appId) {
   const p = await getPrivy(appId)
   await p.auth.logout().catch(() => null)

@@ -203,3 +203,21 @@ main { max-width: var(--max); margin: 0 auto; padding: 8px 0 64px; }
 
 .foot-links { display: flex; gap: 16px; white-space: nowrap; }
 .linkish { border: 0; background: none; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font-size: 12px; }
+
+/* On-chain reserves (Robinhood Chain) */
+.onchain { margin-top: 16px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--canvas); }
+.onchain-head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; }
+.onchain-head svg { width: 16px; height: 16px; fill: currentColor; }
+.onchain-badge { margin-left: auto; padding: 3px 8px; border-radius: 999px; background: var(--accent); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+.onchain p { margin: 8px 0 0; font-size: 13px; color: var(--ink-2); }
+.onchain .total { margin: 10px 0 2px; font-size: 26px; letter-spacing: -.01em; color: var(--ink); }
+.onchain .wallets { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.onchain ul { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.onchain li { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: baseline; font-size: 13px; }
+.onchain li .sym { font-weight: 500; }
+.onchain li .amt { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.onchain li .val { font-variant-numeric: tabular-nums; }
+.onchain .actions { display: flex; gap: 8px; margin-top: 12px; }
+.onchain .actions .pill { flex: 1; justify-content: center; height: 40px; font-size: 12px; }
+.onchain .err { color: #b3261e; }
+.cov-row.estimate .fill { background: var(--line); }
