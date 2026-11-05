@@ -1,0 +1,228 @@
+/* Keep the Other Apps rows consistent with the News row interaction. */
+.framer-8t9d82 a.framer-TK4jO {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.framer-8t9d82 a.framer-TK4jO:hover,
+.framer-8t9d82 a.framer-TK4jO:focus-visible {
+  background-color: var(
+    --token-0991ad5e-61e6-4f0b-bd0d-58cfb98d87eb,
+    rgb(240, 240, 241)
+  ) !important;
+}
+
+.framer-8t9d82 a.framer-TK4jO:active {
+  background-color: var(
+    --token-b0565587-432d-4396-be9e-913730c522e6,
+    rgb(232, 233, 234)
+  ) !important;
+}
+
+/*
+ * Preserve the large-desktop footer's ~240px of clear space above the
+ * wordmark as its width changes at the responsive breakpoints.
+ */
+body .framer-ylBx7 .framer-1ua7w2f-container {
+  /* Scale the crop with the wordmark so its q meets the footer consistently. */
+  bottom: max(-8.422px, calc(-0.398px - 0.5279vw)) !important;
+}
+
+@media (min-width: 1025px) and (max-width: 1379.98px) {
+  .framer-1nyntpt-container
+    .framer-ylBx7.framer-v-uyk8bx
+    .framer-1h1pjkb {
+    padding-top: calc(20vw - 40px);
+  }
+}
+
+/* Keep the tablet wordmark's clear space aligned with the desktop footer. */
+@media (min-width: 810px) and (max-width: 1024.98px) {
+  .framer-1nyntpt-container
+    .framer-ylBx7.framer-v-uyk8bx
+    .framer-1h1pjkb {
+    padding-top: calc(20.1268vw - 38.88px);
+  }
+}
+
+@media (min-width: 810px) and (max-width: 1379.98px) {
+  body .framer-ylBx7 .framer-1ua7w2f-container {
+    bottom: calc(-0.652px - 0.5279vw) !important;
+  }
+}
+
+@media (max-width: 809.98px) {
+  body .framer-ylBx7 .framer-1ua7w2f-container {
+    bottom: calc(-0.736px - 0.5279vw) !important;
+  }
+
+  .framer-1nyntpt-container
+    .framer-ylBx7.framer-v-1kbs55l
+    .framer-1rfhftl {
+    min-height: calc(20.13vw + 227px);
+  }
+}
+
+/* Use the supplied logos' transparency with the existing partner color and opacity. */
+#partners .partner-logo {
+  background-color: var(--token-6f446d9a-1f9c-4efa-9e31-af43d71c9cdd, rgb(7, 17, 29));
+  display: block;
+  flex: none;
+  height: 32px;
+  opacity: 0.3;
+  pointer-events: none;
+  -webkit-mask: var(--partner-logo-image) center / contain no-repeat;
+  mask: var(--partner-logo-image) center / contain no-repeat;
+}
+
+#partners .partner-logo-copper {
+  --partner-logo-image: url("/assets/images/partner-copper.png");
+  width: 125.75px;
+}
+
+#partners .partner-logo-chainalysis {
+  --partner-logo-image: url("/assets/images/partner-chainalysis.png");
+  width: 196.9px;
+}
+
+/* Live top-ten markets ticker. The original Framer ticker remains as fallback. */
+.framer-108gnsz.dynamic-market-ticker-ready > .framer-17hb04p-container {
+  display: none;
+}
+
+.framer-108gnsz .market-ticker {
+  height: 40px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.framer-108gnsz .market-ticker-track {
+  animation: market-ticker-scroll 55s linear infinite;
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+.framer-108gnsz .market-ticker-group {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: 80px;
+  padding-right: 80px;
+}
+
+.framer-108gnsz .market-ticker-card {
+  align-items: center;
+  color: var(--token-6f446d9a-1f9c-4efa-9e31-af43d71c9cdd, rgb(7, 17, 29));
+  display: flex;
+  flex: none;
+  gap: 12px;
+  height: 40px;
+  text-decoration: none;
+}
+
+.framer-108gnsz .market-ticker-card:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid currentcolor;
+  outline-offset: 4px;
+}
+
+.framer-108gnsz .market-ticker-icon {
+  border-radius: 50%;
+  flex: none;
+  height: 40px;
+  object-fit: cover;
+  width: 40px;
+}
+
+.framer-108gnsz .market-ticker-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: max-content;
+}
+
+.framer-108gnsz .market-ticker-name {
+  font-family: "ABC Diatype Regular", "ABC Diatype Regular Placeholder", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -0.16px;
+  line-height: 22.4px;
+}
+
+.framer-108gnsz .market-ticker-price {
+  color: var(--token-134ce386-a3b4-4350-b323-555f193d9f53, rgba(7, 17, 29, 0.4));
+  font-family: "ABC Diatype Medium", "ABC Diatype Medium Placeholder", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+/* Pause only for keyboard navigation; pointer and touch focus must not stop the strip. */
+.framer-108gnsz .market-ticker-track:has(.market-ticker-card:focus-visible) {
+  animation-play-state: paused;
+}
+
+@keyframes market-ticker-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.founder-name-plain {
+  color: inherit !important;
+  text-decoration: none !important;
+  cursor: text !important;
+}
+
+/*
+ * Android Chrome can paint its native tap overlay across a link's full Framer
+ * wrapper (including the entire mobile menu). Keep the authored interaction
+ * states while suppressing that oversized native highlight.
+ */
+a,
+button,
+[role="button"],
+[tabindex] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Keep the Apps navigation aligned with the shared header on the other pages. */
+@media (min-width: 1380px) {
+  .framer-m1a25 .framer-85xyp3-container [data-framer-name="Desktop"] {
+    --1rztu0a: 24px 48px 0 48px !important;
+  }
+}
+
+@media (min-width: 810px) and (max-width: 1379.98px) {
+  .framer-m1a25
+    .framer-85xyp3-container
+    :is([data-framer-name="Desktop"], [data-framer-name="Tablet"]) {
+    --1rztu0a: 24px 32px 0 32px !important;
+  }
+}
+
+/* Match the Apps footer's horizontal layout to the home-page footer. */
+@media (min-width: 810px) and (max-width: 1379.98px) {
+  .framer-m1a25
+    .framer-yngxo9-container
+    [data-framer-name="Footer links container"] {
+    padding: 64px 56px 72px;
+  }
+
+  .framer-m1a25
+    .framer-yngxo9-container
+    [data-framer-name="Footer links container"]
+    .framer-1afefn6 {
+    flex: 1 0 0px;
+  }
+}
+
+@media (max-width: 809.98px) {
+  .framer-m1a25
+    .framer-1dg9yrd-container
+    [data-framer-name="Footer logo container"]
+    .framer-1h1pjkb {
+    padding-right: 24px;
+    padding-left: 24px;
+  }
+}

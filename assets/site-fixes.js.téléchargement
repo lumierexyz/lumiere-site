@@ -1,0 +1,320 @@
+(() => {
+  const appNames = new Map([
+    ["Opensea", "OpenSea"],
+    ["Metamask", "MetaMask"],
+    ["Defillama", "DefiLlama"],
+    ["Hyperlend", "HyperLend"],
+    ["Flowscan", "Hydromancer"],
+  ])
+
+  const externalLinks = new Map([
+    [".framer-aone4t-container > a", "https://x.com/hyperliquidx"],
+    [".framer-1brfxmx-container > a", "https://discord.gg/hyperliquid"],
+    [".framer-afi1rr-container > a", "https://github.com/hyperliquid-dex/"],
+    [".framer-1tdcvph-container > a", "https://t.me/hyperliquid_announcements"],
+  ])
+
+  const touchButtonSelector = [
+    "button",
+    'a[data-framer-name^="Mobile menu"]',
+    'a[data-framer-name="Link"]',
+    "a.framer-KH95w",
+    "a.framer-xQaLA",
+    "a.framer-xiyZZ",
+  ].join(",")
+
+  function getTouchAnimationTarget(button) {
+    if (button.matches('a[data-framer-name^="Mobile menu"]')) {
+      return button.parentElement ?? button
+    }
+
+    return button
+  }
+
+  function setLink(link, href, external) {
+    if (!(link instanceof HTMLAnchorElement)) return
+
+    if (link.getAttribute("href") !== href) link.setAttribute("href", href)
+    link.dataset.siteFixHref = href
+    link.dataset.siteFixExternal = String(external)
+
+    if (external) {
+      if (link.getAttribute("target") !== "_blank") link.setAttribute("target", "_blank")
+      if (link.getAttribute("rel") !== "noopener noreferrer") {
+        link.setAttribute("rel", "noopener noreferrer")
+      }
+    } else {
+      link.removeAttribute("target")
+      link.removeAttribute("rel")
+    }
+  }
+
+  function setLinks(selector, href, external = false) {
+    document.querySelectorAll(selector).forEach(link => setLink(link, href, external))
+  }
+
+  function fixSectionLinks() {
+    document.querySelectorAll("a[href]").forEach(link => {
+      const href = link.getAttribute("href")
+      if (!href) return
+
+      const url = new URL(href, window.location.href)
+      if (url.hash !== "#hero") return
+
+      if (url.pathname.endsWith("/apps")) setLink(link, "/apps", false)
+      if (url.pathname.endsWith("/news")) setLink(link, "/news", false)
+    })
+  }
+
+  function fixFounderNames() {
+    document.querySelectorAll("a").forEach(link => {
+      const name = link.textContent?.trim()
+      if (name !== "Jeff Yan" && name !== "iliensinc") return
+
+      link.removeAttribute("href")
+      link.removeAttribute("target")
+      link.removeAttribute("rel")
+      link.removeAttribute("data-styles-preset")
+      link.classList.remove("framer-styles-preset-w58tei")
+      link.classList.add("founder-name-plain")
+      link.removeAttribute("data-site-fix-href")
+      link.removeAttribute("data-site-fix-external")
+    })
+  }
+
+  function fixTradeLinks() {
+    document.querySelectorAll('[data-framer-name="Start trading"]').forEach(label => {
+      if (label.textContent?.trim() !== "Trade") return
+      setLink(label.closest("a"), "https://app.hyperliquid.xyz/trade", true)
+    })
+  }
+
+  function fixAppNames() {
+    document.querySelectorAll(".framer-text").forEach(element => {
+      const replacement = appNames.get(element.textContent?.trim())
+      if (replacement && element.textContent !== replacement) element.textContent = replacement
+    })
+
+    for (const attribute of ["alt", "data-framer-name", "name"]) {
+      document.querySelectorAll(`[${attribute}]`).forEach(element => {
+        const currentName = element.getAttribute(attribute)
+        const replacement = appNames.get(currentName)
+        if (replacement) element.setAttribute(attribute, replacement)
+      })
+    }
+  }
+
+  function applyFixes() {
+    for (const [selector, href] of externalLinks) setLinks(selector, href, true)
+
+    if (window.location.pathname === "/" || window.location.pathname === "/index.html") {
+      setLinks(".framer-qwdd6q-container > a", "https://app.hyperliquid.xyz/trade", true)
+      fixTradeLinks()
+    }
+
+    if (window.location.pathname.startsWith("/tech")) {
+      setLinks('a[href="https://app.hyperliquid.xyz/"]', "https://app.hyperliquid.xyz/explorer", true)
+    }
+
+    if (window.location.pathname.startsWith("/about")) {
+      setLinks(".framer-h913vz-container > a", "https://hyperfoundation.org/", true)
+      setLinks(".framer-1en5cvm-container > a", "https://hyperliquidpolicy.org/", true)
+      fixFounderNames()
+    }
+
+    fixSectionLinks()
+    fixAppNames()
+  }
+
+  let updateQueued = false
+  const observer = new MutationObserver(() => {
+    if (updateQueued) return
+    updateQueued = true
+    requestAnimationFrame(() => {
+      updateQueued = false
+      applyFixes()
+    })
+  })
+
+  let pressedTouchButton = null
+  let touchStartPosition = null
+  let touchButtonAnimation = null
+  let touchPressStartedAt = 0
+  let touchedNavigationLink = null
+  let touchNavigationReadyAt = 0
+  let touchNavigationResetTimer = null
+  const touchPressDuration = 70
+
+  const clearTouchedNavigationLink = () => {
+    touchedNavigationLink = null
+    touchNavigationReadyAt = 0
+    clearTimeout(touchNavigationResetTimer)
+    touchNavigationResetTimer = null
+  }
+
+  const releaseTouchButton = (completePress = false) => {
+    if (pressedTouchButton) {
+      const button = pressedTouchButton
+      const currentTransform = getComputedStyle(button).transform
+      const remainingPressTime = completePress
+        ? Math.max(0, touchPressDuration - (performance.now() - touchPressStartedAt))
+        : 0
+
+      touchButtonAnimation?.cancel()
+      const initialTransform = currentTransform === "none" ? "scale(1)" : currentTransform
+
+      if (remainingPressTime > 0) {
+        const duration = remainingPressTime + 140
+        touchButtonAnimation = button.animate(
+          [
+            { transform: initialTransform, easing: "cubic-bezier(0.2, 0, 0, 1)" },
+            {
+              transform: "scale(0.96)",
+              offset: remainingPressTime / duration,
+              easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+            },
+            { transform: "scale(1)" },
+          ],
+          { duration },
+        )
+      } else {
+        touchButtonAnimation = button.animate(
+          [{ transform: initialTransform }, { transform: "scale(1)" }],
+          {
+            duration: 140,
+            easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+          },
+        )
+      }
+    }
+
+    pressedTouchButton = null
+    touchStartPosition = null
+    touchPressStartedAt = 0
+  }
+
+  document.addEventListener(
+    "touchstart",
+    event => {
+      if (!(event.target instanceof Element)) return
+
+      const button = event.target.closest(touchButtonSelector)
+      if (!button) return
+      const animationTarget = getTouchAnimationTarget(button)
+
+      releaseTouchButton()
+      touchButtonAnimation?.cancel()
+      touchButtonAnimation = animationTarget.animate(
+        [{ transform: "scale(1)" }, { transform: "scale(0.96)" }],
+        {
+          duration: touchPressDuration,
+          easing: "cubic-bezier(0.2, 0, 0, 1)",
+          fill: "forwards",
+        },
+      )
+      pressedTouchButton = animationTarget
+      touchPressStartedAt = performance.now()
+
+      clearTouchedNavigationLink()
+      if (button.matches('a[data-framer-name="Link"]')) {
+        touchedNavigationLink = button
+        touchNavigationReadyAt = touchPressStartedAt + touchPressDuration
+        touchNavigationResetTimer = setTimeout(clearTouchedNavigationLink, 750)
+      }
+
+      const touch = event.touches[0]
+      touchStartPosition = touch ? { x: touch.clientX, y: touch.clientY } : null
+    },
+    { capture: true, passive: true },
+  )
+
+  document.addEventListener(
+    "touchmove",
+    event => {
+      if (!pressedTouchButton || !touchStartPosition) return
+
+      const touch = event.touches[0]
+      if (!touch) return
+      if (
+        Math.abs(touch.clientX - touchStartPosition.x) > 8 ||
+        Math.abs(touch.clientY - touchStartPosition.y) > 8
+      ) {
+        clearTouchedNavigationLink()
+        releaseTouchButton()
+      }
+    },
+    { capture: true, passive: true },
+  )
+
+  document.addEventListener("touchend", () => releaseTouchButton(true), {
+    capture: true,
+    passive: true,
+  })
+  document.addEventListener(
+    "touchcancel",
+    () => {
+      clearTouchedNavigationLink()
+      releaseTouchButton()
+    },
+    { capture: true, passive: true },
+  )
+  window.addEventListener("blur", () => {
+    clearTouchedNavigationLink()
+    releaseTouchButton()
+  })
+
+  document.addEventListener(
+    "click",
+    event => {
+      if (!(event.target instanceof Element)) return
+
+      const touchedLink = event.target.closest('a[data-framer-name="Link"]')
+      if (
+        touchedLink instanceof HTMLAnchorElement &&
+        touchedLink === touchedNavigationLink
+      ) {
+        const href = touchedLink.href
+        const navigationDelay = Math.max(0, touchNavigationReadyAt - performance.now())
+        clearTouchedNavigationLink()
+
+        if (href && navigationDelay > 0) {
+          event.preventDefault()
+          event.stopImmediatePropagation()
+          setTimeout(() => window.location.assign(href), navigationDelay)
+          return
+        }
+      }
+
+      const link = event.target.closest("a[data-site-fix-href]")
+      if (!(link instanceof HTMLAnchorElement)) return
+
+      const href = link.dataset.siteFixHref
+      if (!href) return
+
+      event.preventDefault()
+      event.stopImmediatePropagation()
+
+      const external = link.dataset.siteFixExternal === "true"
+      if (external || event.metaKey || event.ctrlKey || event.shiftKey) {
+        window.open(href, "_blank", "noopener,noreferrer")
+      } else {
+        window.location.assign(href)
+      }
+    },
+    true,
+  )
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    childList: true,
+    characterData: true,
+    subtree: true,
+    attributeFilter: ["href", "target", "rel", "class", "alt", "data-framer-name", "name"],
+  })
+
+  applyFixes()
+
+  import("/hyperliquid-stats.js").catch(error => {
+    console.warn("Unable to initialize the Hyperliquid homepage data.", error)
+  })
+})()

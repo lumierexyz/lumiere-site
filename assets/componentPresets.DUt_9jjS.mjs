@@ -1,0 +1,2 @@
+import{t as e}from"./rolldown-runtime.Dh6celcD.mjs";var t,n,r=e((()=>{t={Zhn7tj49f:{borderRadius:0,bottomLeftRadius:0,bottomRightRadius:0,boxShadow:``,isMixedBorderRadius:!1,isRed:!0,topLeftRadius:0,topRightRadius:0}},n={}}));export{r as n,t as r,n as t};
+//# sourceMappingURL=componentPresets.DUt_9jjS.mjs.map
