@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lumiere — Your purchasing power, measured</title>
+  <meta name="description" content="See your Personal Expense Index, how far your reserves go against projected costs, and where your exposure to rising prices sits.">
+  <meta property="og:title" content="Lumiere — Your purchasing power, measured">
+  <meta property="og:image" content="https://lumiere-coral-kappa.vercel.app/assets/lumiere-og.png">
+  <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+  <link rel="preload" href="/assets/files/HpzDfYONwF3qmrWsKXaJbZfUg.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/files/Gx3MGZkSYrrmCVe9sdeh0yV84qk.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/app/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="pill brand" href="/" aria-label="Lumiere home">
+      <svg viewBox="0 0 308 308" aria-hidden="true"><path d="M2 2L95 2L213 183L2 125Z"/><path d="M217 2L307 2L307 125L217 180Z"/><path d="M2 185L205 185L52 292L2 245Z"/><path d="M95 305L210 192L183 305Z"/><path d="M217 187L307 187L307 245L247 307L217 307Z"/></svg>
+      <span>Lumiere</span>
+    </a>
+    <nav class="tabs" aria-label="Sections">
+      <a class="pill" href="#overview">Overview</a>
+      <a class="pill" href="#spending">Spending</a>
+      <a class="pill" href="#projections">Projections</a>
+      <a class="pill" href="#assistant">Assistant</a>
+    </nav>
+    <div class="account">
+      <span class="chip" id="mode-chip">Illustrative data</span>
+      <button class="pill accent" id="auth-button" type="button">Sign in</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="overview">
+      <video class="hero-bg" src="/assets/media/lumiere-hero.mp4" poster="/assets/media/lumiere-hero-poster.jpg"
+             autoplay muted loop playsinline aria-hidden="true"></video>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="label light">Personal Expense Index</p>
+          <h1>Your purchasing power, measured against your own costs.</h1>
+          <p class="hero-sub" id="hero-sub">How the cost of your spending basket has moved at official category prices, compared with headline inflation.</p>
+        </div>
+        <div class="hero-figure">
+          <div class="big" id="pei-value">—</div>
+          <div class="hero-stats">
+            <div><span class="k">12-month change</span><span class="v" id="pei-yoy">—</span></div>
+            <div><span class="k">Headline inflation</span><span class="v" id="head-yoy">—</span></div>
+            <div><span class="k">Difference</span><span class="v" id="pei-gap">—</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="banner" id="banner" hidden></div>
+
+    <section class="grid">
+      <article class="card span-8">
+        <header class="card-head">
+          <div><p class="label">Index history</p><h2>Your basket vs. headline inflation</h2></div>
+          <div class="legend"><span><i class="sw sw-pei"></i>Your index</span><span><i class="sw sw-head"></i>Headline</span></div>
+        </header>
+        <div class="chart" id="pei-chart" role="img" aria-label="Personal Expense Index compared with headline inflation"></div>
+        <p class="foot" id="pei-foot">Base = 100.</p>
+      </article>
+
+      <article class="card span-4" id="coverage">
+        <header class="card-head"><div><p class="label">Future expense coverage</p><h2>How long your reserves last</h2></div></header>
+        <form class="coverage-form" id="coverage-form">
+          <label for="reserves">Reserves</label>
+          <div class="input-row">
+            <input id="reserves" name="reserves" type="number" min="1" step="100" value="20000" inputmode="decimal">
+            <span class="currency" id="currency">USD</span>
+          </div>
+          <button class="pill dark" type="submit">Calculate</button>
+        </form>
+        <div class="coverage-out" id="coverage-out"></div>
+        <p class="foot">Projected costs grow with category inflation. Reserves are your own estimate and are not verified.</p>
+      </article>
+
+      <article class="card span-6" id="spending">
+        <header class="card-head">
+          <div><p class="label">Spending</p><h2>Where your money goes</h2></div>
+          <div class="stat"><span class="k">Monthly average</span><span class="v" id="avg-monthly">—</span></div>
+        </header>
+        <ol class="bars" id="category-bars"></ol>
+      </article>
+
+      <article class="card span-6" id="projections">
+        <header class="card-head">
+          <div><p class="label">Next 12 months</p><h2>Projected living costs</h2></div>
+        </header>
+        <div class="scenarios" id="scenarios"></div>
+        <p class="foot">Conditional projections under the stated inflation assumptions, not predictions.</p>
+      </article>
+
+      <article class="card span-4" id="import">
+        <header class="card-head"><div><p class="label">Data</p><h2>Import a bank statement</h2></div></header>
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept=".csv,text/csv" hidden>
+          <span class="drop-title">Drop a CSV file</span>
+          <span class="drop-sub">Date, description and amount columns. European and US formats are detected automatically.</span>
+        </label>
+        <p class="foot" id="import-status">Card and account numbers are masked before storage. The original file is not kept.</p>
+      </article>
+
+      <article class="card span-8" id="assistant">
+        <header class="card-head"><div><p class="label">Assistant</p><h2>Ask about your numbers</h2></div></header>
+        <div class="chat" id="chat" aria-live="polite"></div>
+        <div class="suggestions" id="suggestions">
+          <button type="button" class="pill">How much could my cost of living increase over the next year?</button>
+          <button type="button" class="pill">Which categories expose me most to inflation?</button>
+          <button type="button" class="pill">What happens if energy prices increase by 20%?</button>
+        </div>
+        <form class="chat-form" id="chat-form">
+          <input id="chat-input" type="text" maxlength="2000" placeholder="Ask a question" autocomplete="off">
+          <button class="pill dark" type="submit">Send</button>
+        </form>
+        <p class="foot">Answers are computed from your data with server-side tools. Lumiere does not move money or give investment advice.</p>
+      </article>
+    </section>
+  </main>
+
+  <dialog class="signin" id="signin">
+    <form method="dialog" id="signin-form">
+      <h2>Sign in to Lumiere</h2>
+      <p>We will email you a sign-in link.</p>
+      <input id="email" type="email" required placeholder="you@example.com" autocomplete="email">
+      <div class="dialog-actions">
+        <button class="pill" value="cancel" formnovalidate>Cancel</button>
+        <button class="pill dark" id="send-link" value="send">Send link</button>
+      </div>
+      <p class="foot" id="signin-status"></p>
+    </form>
+  </dialog>
+
+  <footer class="site-foot">
+    <span>Lumiere is an early-stage project. Figures are estimates based on official statistics and your own data; they are not guarantees or financial advice.</span>
+    <a href="/">Back to site</a>
+  </footer>
+
+  <script src="/app/config.js"></script>
+  <script type="module" src="/app/app.js"></script>
+</body>
+</html>

@@ -14,8 +14,8 @@
     ["Vision", "#vision"],
     ["Research", "#research"],
     ["About", "#about"],
-    ["Explore", "#technology"],
-    ["Explore Lumiere", "#technology"],
+    ["Explore", "/app/"],
+    ["Explore Lumiere", "/app/"],
     ["Our Vision", "#vision"],
     ["Our Research", "#research"],
   ])
@@ -241,6 +241,10 @@
     if (now - lastNav < 600) return
     lastNav = now
     const hash = a.dataset.lumiereHref
+    if (!hash.startsWith("#")) {
+      window.location.href = hash
+      return
+    }
     // laisser le menu mobile se refermer avant de mesurer la position
     setTimeout(() => {
       const el = target(hash)
