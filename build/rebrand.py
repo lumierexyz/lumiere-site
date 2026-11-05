@@ -82,9 +82,10 @@ for attr, val in [('name="description"', DESC), ('property="og:title"', TITLE), 
     h, n = re.subn(r'(<meta ' + re.escape(attr) + r' content=")[^"]*(")', lambda m: m.group(1) + H.escape(val) + m.group(2), h)
     if not n:
         misses.append(attr)
-h = h.replace('https://hyperliquid.xyz/apple-touch-icon.png', '/apple-touch-icon.png')
-h = h.replace('https://hyperliquid.xyz/favicon-32x32.png', '/favicon-32x32.png')
-h = h.replace('https://hyperliquid.xyz/favicon-16x16.png', '/favicon-16x16.png')
+h = h.replace('https://hyperliquid.xyz/apple-touch-icon.png', '/apple-touch-icon.png?v=2')
+h = h.replace('https://hyperliquid.xyz/favicon-32x32.png', '/favicon-32x32.png?v=2')
+h = h.replace('https://hyperliquid.xyz/favicon-16x16.png', '/favicon-16x16.png?v=2')
+h = h.replace('<link rel="icon" type="image/png" sizes="32x32"', '<link rel="icon" href="/favicon.ico?v=2" sizes="any"><link rel="icon" type="image/png" sizes="32x32"', 1)
 ld = {'@context': 'https://schema.org', '@type': 'Organization', 'name': 'Lumiere', 'url': SITE,
       'logo': SITE + '/assets/lumiere-icon-512.png', 'description': DESC, 'slogan': 'Financial intelligence for a changing world.'}
 extra_head = ('<meta property="og:site_name" content="Lumiere">'
