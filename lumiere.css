@@ -118,3 +118,7 @@
 /* Slogan du pied de page sur plusieurs lignes */
 .lumiere-wrap { white-space: normal !important; overflow: visible !important; }
 h6.lumiere-wrap { max-width: 220px; }
+
+/* DM Sans remplace ABC Diatype (fichiers de police substitués) : l'interlettrage négatif
+   réglé pour Diatype serre trop DM Sans sur les intertitres */
+h4.framer-text, h5.framer-text, .lumiere-about h2 { letter-spacing: -0.01em !important; }

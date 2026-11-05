@@ -100,7 +100,7 @@ if not n:
     misses.append('stats script tag')
 # filtre de teinte : seulement les vidéos et les deux GIF de particules d'origine
 h = h.replace('<style>video,img[src*=".gif"]{filter:hue-rotate(48deg) saturate(.8)}</style>',
-              '<style>video,img[src*="9rgENqDj06"],img[src*="bbQMeedee7"]{filter:hue-rotate(48deg) saturate(.8)}</style>')
+              '<style>video:not([src*="lumiere-hero"]),img[src*="9rgENqDj06"],img[src*="bbQMeedee7"]{filter:hue-rotate(48deg) saturate(.8)}</style>')
 files['index.html'] = h
 raw('title:`Hyperliquid – Infrastructure to House All Finance`', f'title:`{TITLE}`', [SHARED])
 raw('description:`Markets for crypto, commodities, indices, and FX. Open 24/7 onchain, without intermediaries.`',
@@ -108,6 +108,10 @@ raw('description:`Markets for crypto, commodities, indices, and FX. Open 24/7 on
 raw('socialImage:`/assets/files/ymnmM5v8VPDDFotHL3j3j4VNHlc.png`', 'socialImage:`/assets/lumiere-og.png`', [SHARED])
 
 # ---------------------------------------------------------------- héro
+# vidéo du héro : dégradé Lumière animé (Higgsfield) à la place de la vidéo de particules
+for p in files:
+    files[p] = files[p].replace('/assets/media/HL-header-web_3-14s-mid.mp4', '/assets/media/lumiere-hero.mp4')
+    files[p] = files[p].replace('/assets/images/mhaUGIOzxAOVIszELynK2HeoB8w.__q-77702bf15d44.png', '/assets/media/lumiere-hero-poster.jpg')
 text('Infrastructure to House All Finance', 'The home of personal financial infrastructure.')
 text('Markets for crypto, commodities, indices, and FX.',
      'AI-powered financial intelligence designed to understand your expenses, anticipate future costs, '
