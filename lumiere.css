@@ -1,0 +1,120 @@
+/* Lumiere — masquages et ajustements typographiques ; aucun nœud de #main n'est retiré. */
+
+/* Bande de logos partenaires de l'ancienne plateforme, menu déroulant « News », bouton Build */
+#partners,
+.lumiere-hide { display: none !important; }
+/* Le même composant sert de menu déroulant « News » (bureau) et de menu mobile :
+   sur bureau on le masque, sur mobile on ne garde que les liens */
+@media (min-width: 810px) { .framer-7cr95o { display: none !important; } }
+.framer-7cr95o .framer-1rig9su,
+.framer-7cr95o .framer-ibsmof,
+.framer-7cr95o .framer-lLmZR,
+.framer-7cr95o .framer-KuDsK { display: none !important; }
+
+/* Piliers (ex-métriques) : pas d'unité, titre et description en casse normale */
+[data-framer-name="Hero metrics"] [data-framer-name="Unit"] { display: none !important; }
+[data-framer-name="Hero metrics"] [data-framer-name="Number"] .framer-text {
+  font-size: 19px !important;
+  letter-spacing: -0.01em;
+  white-space: normal !important;
+}
+[data-framer-name="Hero metrics"] [data-framer-name="Label"] .framer-text {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  white-space: normal !important;
+}
+[data-framer-name="Hero metrics"] [data-framer-name="Label"],
+[data-framer-name="Hero metrics"] [data-framer-name="Number"] { white-space: normal !important; }
+[data-framer-name="Metric item 1"] { gap: 32px !important; align-items: flex-start !important; }
+[data-framer-name="Metric item 1"] > * { flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; }
+[data-framer-name="Hero metrics"] [data-framer-name="Unit + Number"],
+[data-framer-name="Hero metrics"] [data-framer-name="Number"],
+[data-framer-name="Hero metrics"] [data-framer-name="Label"] { width: 100% !important; overflow: visible !important; }
+
+/* Technologie : l'en-tête passe avant les trois étapes */
+[data-framer-name="Home apps content"] > .framer-d38pu1 { order: 0; }
+[data-framer-name="Home apps content"] > .framer-1o0sq50 { order: 1; }
+[data-framer-name="Home apps content"] > .framer-5obf71 { order: 2; }
+[data-framer-name="Home apps content"] > .framer-8t9d82 { order: 3; }
+
+/* Technologie : 3 étapes, pas d'icône d'app, description en casse normale */
+[data-framer-name="App lane 4"],
+[data-framer-name="App lane 5"],
+[data-framer-name="App lane 6"] { display: none !important; }
+.framer-TK4jO .framer-Hr7O9 { visibility: hidden !important; }
+.framer-TK4jO [data-framer-name="hyperevmscan.io"] .framer-text {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  line-height: 1.45 !important;
+  white-space: normal !important;
+}
+.framer-TK4jO [data-framer-name="hyperevmscan.io"],
+.framer-TK4jO .framer-n9bz6m { white-space: normal !important; }
+
+/* Lignes et cartes devenues statiques : pas de flèche, pas de clic */
+.lumiere-static { pointer-events: none !important; cursor: default !important; }
+.framer-TK4jO [data-framer-name="Up right"],
+.framer-TK4jO [data-framer-name="Right"],
+.framer-KuDsK [data-framer-name="Up right"] { display: none !important; }
+
+/* Axes de recherche : pas de date, pas de « Read all » */
+.framer-KuDsK .framer-1fhfelq,
+.framer-KuDsK time,
+[data-framer-name="Read all news lane"] { display: none !important; }
+
+/* Liens vides laissés par l'ancien texte */
+#security h4 a,
+#research h4 a,
+[data-framer-name="Answer"] a { display: none !important; }
+
+/* Pied de page : pas de réseaux sociaux tant qu'aucune URL Lumiere n'existe */
+.framer-aone4t-container,
+.framer-1brfxmx-container,
+.framer-afi1rr-container,
+.framer-1tdcvph-container { display: none !important; }
+
+/* Bandeau des catégories (remplace les cours) */
+.lumiere-category { cursor: default; }
+.lumiere-category-icon {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  background: var(--token-b0565587-432d-4396-be9e-913730c522e6, rgb(232, 233, 234));
+  color: var(--token-6f446d9a-1f9c-4efa-9e31-af43d71c9cdd, rgb(7, 17, 29));
+  border-radius: 50%;
+}
+.lumiere-category-icon svg { width: 58%; height: 58%; }
+.lumiere-category .market-ticker-price { white-space: nowrap; }
+
+/* Second bouton du héro */
+.lumiere-cta-row {
+  height: auto !important;
+  overflow: visible !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+.lumiere-cta-row > :first-child:not([class*="-container"]) { flex-basis: 100%; }
+.lumiere-secondary a { background-color: var(--token-b0565587-432d-4396-be9e-913730c522e6, rgb(232, 233, 234)) !important; }
+
+/* En-tête About injecté au-dessus des questions */
+.lumiere-about { display: flex; flex-direction: column; gap: 20px; width: 100%; margin: 0 0 40px; }
+.lumiere-about h2 { margin: 0; }
+.lumiere-about p { margin: 0; --framer-text-color: var(--token-bace16da-7c6e-4309-ba9d-4d3915d9f06b, rgba(7, 17, 29, 0.7)); }
+
+/* Étapes : hauteur libre pour les descriptions sur plusieurs lignes */
+[data-framer-name^="App lane"] { height: auto !important; }
+[data-framer-name^="App lane"] > .framer-TK4jO { height: auto !important; min-height: 64px; padding-top: 14px !important; padding-bottom: 14px !important; }
+
+/* Piliers : le titre peut passer sur deux lignes sans chevaucher */
+[data-framer-name="Hero metrics"] [data-framer-name="Unit + Number"],
+[data-framer-name="Hero metrics"] [data-framer-name="Number"],
+[data-framer-name="Metric item 1"] > * { height: auto !important; }
+
+/* Slogan du pied de page sur plusieurs lignes */
+.lumiere-wrap { white-space: normal !important; overflow: visible !important; }
+h6.lumiere-wrap { max-width: 220px; }

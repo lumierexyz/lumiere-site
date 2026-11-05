@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Diatype;src:url(../assets/files/HpzDfYONwF3qmrWsKXaJbZfUg.woff2)}
+@font-face{font-family:DiatypeM;src:url(../assets/files/3XoaI9Ydpfk7UVzG6asd5Pxd0A.woff2)}
+@font-face{font-family:Teodor;src:url(../assets/files/Gx3MGZkSYrrmCVe9sdeh0yV84qk.woff2)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1512px;height:732px;background:#08131f;color:#e7edf5;font-family:Diatype,sans-serif;font-size:13px;overflow:hidden}
+.top{height:52px;display:flex;align-items:center;padding:0 22px;border-bottom:1px solid #16263a;gap:30px}
+.brand{display:flex;align-items:center;gap:9px;font-family:Teodor;font-size:21px;letter-spacing:.2px}
+.brand svg{width:20px;height:20px}
+.tabs{display:flex;gap:26px;color:#7f93ab}
+.tabs .on{color:#a8c5eb}
+.tag{margin-left:auto;font-family:DiatypeM;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#a8c5eb;border:1px solid #2a4566;border-radius:6px;padding:5px 9px}
+.body{display:grid;grid-template-columns:1fr 430px;height:680px}
+.left{border-right:1px solid #16263a;padding:26px 28px 44px;display:flex;flex-direction:column}
+.k{font-family:DiatypeM;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6f849c}
+.big{display:flex;align-items:baseline;gap:14px;margin-top:10px}
+.big b{font-family:Teodor;font-weight:400;font-size:54px;letter-spacing:-.5px}
+.big span{color:#a8c5eb;font-size:15px}
+.sub{color:#6f849c;margin-top:6px}
+.legend{display:flex;gap:22px;margin-top:22px;color:#9fb0c4}
+.legend i{display:inline-block;width:18px;height:2px;vertical-align:middle;margin-right:8px}
+svg.chart{margin-top:10px;flex:1}
+.right{padding:26px 24px;display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:1fr 56px 70px;align-items:center;padding:13px 0;border-bottom:1px solid #132235}
+.row .n{font-size:14px}
+.row .s{color:#6f849c;text-align:right}
+.row .c{text-align:right;color:#a8c5eb}
+.bar{grid-column:1/4;height:3px;background:#132235;border-radius:2px;margin-top:9px;overflow:hidden}
+.bar i{display:block;height:100%;background:#5d86bb}
+.note{margin-top:auto;border:1px solid #1c3150;background:#0b1a2b;border-radius:10px;padding:14px 16px;line-height:1.5;color:#b9c7d8}
+.note .k{margin-bottom:6px;color:#a8c5eb}
+.foot{position:absolute;left:28px;bottom:16px;color:#4f6580;font-size:11px}
+</style></head><body>
+<div class="top">
+  <div class="brand"><svg viewBox="0 0 308 308" id="m"></svg>Lumiere</div>
+  <div class="tabs"><span class="on">Overview</span><span>Expenses</span><span>Projections</span><span>Scenarios</span></div>
+  <div class="tag">Illustrative data</div>
+</div>
+<div class="body">
+  <div class="left">
+    <div class="k">Personal expense index · 12-month scenario</div>
+    <div class="big"><b>104.8</b><span>vs. 102.6 consumer price index</span></div>
+    <div class="sub">Base = 100 today. Example profile, not a forecast.</div>
+    <div class="legend"><span><i style="background:#a8c5eb"></i>Your expense index</span><span><i style="background:#4a6382"></i>Consumer price index</span></div>
+    <svg class="chart" viewBox="0 0 1000 380" preserveAspectRatio="none" id="chart"></svg>
+  </div>
+  <div class="right">
+    <div class="k" style="display:grid;grid-template-columns:1fr 56px 70px"><span>Category</span><span style="text-align:right">Share</span><span style="text-align:right">Scenario</span></div>
+    <div id="rows"></div>
+    <div class="note"><div class="k">Agent insight</div>In this scenario, energy and healthcare drive most of the projected change in your costs, ahead of the broad index.</div>
+  </div>
+</div>
+<div class="foot">Illustrative example for product exploration. Lumiere does not provide financial advice.</div>
+<script>
+const MARK=[[[2,2],[95,2],[213,183],[2,125]],[[217,2],[307,2],[307,125],[217,180]],[[2,185],[205,185],[52,292],[2,245]],[[95,305],[210,192],[183,305]],[[217,187],[307,187],[307,245],[247,307],[217,307]]];
+document.getElementById('m').innerHTML=MARK.map(p=>`<path fill="#a8c5eb" d="M${p.map(q=>q.join(' ')).join('L')}Z"/>`).join('');
+const cats=[['Housing',34,'+4.1%'],['Food',14,'+3.2%'],['Energy',7,'+6.8%'],['Transportation',12,'+2.4%'],['Healthcare',8,'+5.3%'],['Everyday expenses',25,'+2.0%']];
+document.getElementById('rows').innerHTML=cats.map(([n,s,c])=>`<div class="row"><span class="n">${n}</span><span class="s">${s}%</span><span class="c">${c}</span><div class="bar"><i style="width:${s*2.4}%"></i></div></div>`).join('');
+// courbes lisses déterministes
+function series(end,wob,seed){const pts=[];for(let i=0;i<=48;i++){const t=i/48;const v=100+(end-100)*Math.pow(t,1.15)+Math.sin(i*0.9+seed)*wob*t+Math.sin(i*0.37+seed*2)*wob*0.6*t;pts.push(v)}return pts}
+const a=series(104.8,0.35,1),b=series(102.6,0.2,4);
+const y=v=>350-(v-99)/(106.5-99)*330;
+const path=s=>s.map((v,i)=>`${i?'L':'M'}${(i/48*1000).toFixed(1)} ${y(v).toFixed(1)}`).join('');
+let g='';
+for(let v=100;v<=106;v+=2){g+=`<line x1="0" x2="1000" y1="${y(v)}" y2="${y(v)}" stroke="#132235" stroke-width="1"/><text x="6" y="${y(v)-6}" fill="#4f6580" font-size="12" font-family="Diatype">${v}</text>`}
+const months=['Now','3 mo','6 mo','9 mo','12 mo'];months.forEach((m,i)=>{g+=`<text x="${i===4?992:i*245+(i?0:8)}" text-anchor="${i===4?"end":"start"}" y="374" fill="#4f6580" font-size="12" font-family="Diatype">${m}</text>`});
+g+=`<path d="${path(a)}L1000 350L0 350Z" fill="url(#f)" opacity=".5"/>`;
+g+=`<path d="${path(b)}" stroke="#4a6382" stroke-width="2" fill="none" vector-effect="non-scaling-stroke"/>`;
+g+=`<path d="${path(a)}" stroke="#a8c5eb" stroke-width="2.4" fill="none" vector-effect="non-scaling-stroke"/>`;
+document.getElementById('chart').innerHTML=`<defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5d86bb" stop-opacity=".35"/><stop offset="1" stop-color="#5d86bb" stop-opacity="0"/></linearGradient></defs>`+g;
+</script>
+</body></html>

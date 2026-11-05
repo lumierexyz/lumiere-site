@@ -7,12 +7,7 @@
     ["Flowscan", "Hydromancer"],
   ])
 
-  const externalLinks = new Map([
-    [".framer-aone4t-container > a", "https://x.com/hyperliquidx"],
-    [".framer-1brfxmx-container > a", "https://discord.gg/hyperliquid"],
-    [".framer-afi1rr-container > a", "https://github.com/hyperliquid-dex/"],
-    [".framer-1tdcvph-container > a", "https://t.me/hyperliquid_announcements"],
-  ])
+  const externalLinks = new Map([])
 
   const touchButtonSelector = [
     "button",
@@ -85,7 +80,7 @@
   function fixTradeLinks() {
     document.querySelectorAll('[data-framer-name="Start trading"]').forEach(label => {
       if (label.textContent?.trim() !== "Trade") return
-      setLink(label.closest("a"), "https://app.hyperliquid.xyz/trade", true)
+      setLink(label.closest("a"), "#technology/trade", true)
     })
   }
 
@@ -108,17 +103,16 @@
     for (const [selector, href] of externalLinks) setLinks(selector, href, true)
 
     if (window.location.pathname === "/" || window.location.pathname === "/index.html") {
-      setLinks(".framer-qwdd6q-container > a", "https://app.hyperliquid.xyz/trade", true)
-      fixTradeLinks()
+
     }
 
     if (window.location.pathname.startsWith("/tech")) {
-      setLinks('a[href="https://app.hyperliquid.xyz/"]', "https://app.hyperliquid.xyz/explorer", true)
+      setLinks('a[href="#technology/"]', "#technology/explorer", true)
     }
 
     if (window.location.pathname.startsWith("/about")) {
       setLinks(".framer-h913vz-container > a", "https://hyperfoundation.org/", true)
-      setLinks(".framer-1en5cvm-container > a", "https://hyperliquidpolicy.org/", true)
+      setLinks(".framer-1en5cvm-container > a", "https://lumierepolicy.org/", true)
       fixFounderNames()
     }
 
@@ -313,8 +307,4 @@
   })
 
   applyFixes()
-
-  import("/hyperliquid-stats.js").catch(error => {
-    console.warn("Unable to initialize the Hyperliquid homepage data.", error)
-  })
 })()
