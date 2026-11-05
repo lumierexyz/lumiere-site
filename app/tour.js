@@ -2,7 +2,8 @@
 // The blur is applied to the other elements themselves (not a backdrop with a cut-out), so the
 // highlighted card keeps its rounded corners and there are no seams.
 
-const STORE = "lumiere.tour.v1"
+let STORE = "lumiere.tour.v1"
+export function scopeTour(userId) { if (userId) STORE = `lumiere.tour.v1:${userId}` }
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches
 
 export const tourDone = () => localStorage.getItem(STORE) === "done"

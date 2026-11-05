@@ -153,3 +153,19 @@ h4.framer-text, h5.framer-text, .lumiere-about h2 { letter-spacing: -0.01em !imp
 .lumiere-footer > a.lumiere-x:hover { background: rgba(255, 255, 255, .24); }
 .lumiere-footer > a.lumiere-x svg { width: 16px; height: 16px; fill: currentColor; }
 @media (max-width: 809px) { .lumiere-footer > a.lumiere-x { top: 18px; right: 18px; } }
+
+/* « Built on Robinhood Chain » */
+.lumiere-built { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin: 0 0 14px; padding: 7px 12px 7px 10px;
+  border-radius: 999px; background: rgba(168, 197, 235, .28); font: 400 13px/1 "DM Sans", sans-serif; color: rgba(7, 17, 29, .7); white-space: nowrap; }
+.lumiere-built strong { font-weight: 500; color: #07111d; }
+.lumiere-built svg, .lumiere-built-foot svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
+.lumiere-footer > .lumiere-built-foot { position: absolute !important; top: 28px; left: 28px; z-index: 2; display: inline-flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 16px 0 12px; border-radius: 999px; background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .28);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #fff; font: 500 14px/1 "DM Sans", sans-serif; }
+@media (max-width: 809px) { .lumiere-footer > .lumiere-built-foot { top: 18px; left: 18px; } }
+@media (max-width: 809px) {
+  .lumiere-footer { padding-bottom: 64px !important; }
+  .lumiere-footer > a.lumiere-x, .lumiere-footer > .lumiere-built-foot { top: auto; bottom: 16px; height: 34px; font-size: 13px; padding: 0 12px 0 10px; }
+  .lumiere-footer > a.lumiere-x { right: 16px; }
+  .lumiere-footer > .lumiere-built-foot { left: 16px; }
+}

@@ -49,6 +49,13 @@ body.auth-open { overflow: hidden; }
 .auth-status { min-height: 1.5em; margin: 10px 0 0; font-size: 13px; color: var(--ink-2); }
 .auth-status.error { color: #b3261e; }
 
+.auth-wallet { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 48px; border: 1px solid var(--line);
+  border-radius: 12px; background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: border-color .2s, background-color .2s, transform .15s cubic-bezier(.2, 0, 0, 1), opacity .2s; }
+.auth-wallet:hover { border-color: var(--ink-3); background: var(--canvas); }
+.auth-wallet:active { transform: scale(.985); }
+.auth-wallet:disabled { opacity: .55; cursor: progress; }
+.auth-wallet svg { width: 20px; height: 20px; }
 .auth-divider { display: flex; align-items: center; gap: 12px; margin: 22px 0 16px; font-size: 11px; letter-spacing: .08em;
   text-transform: uppercase; color: var(--ink-3); }
 .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }

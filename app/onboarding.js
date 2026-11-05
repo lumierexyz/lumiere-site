@@ -1,7 +1,9 @@
 // First-visit questionnaire. One question per screen; answers stay in this browser (localStorage)
 // and, once accounts exist, are sent to the profile endpoint.
 
-const STORE = "lumiere.onboarding.v1"
+let STORE = "lumiere.onboarding.v1"
+// Answers are kept per account: a new account on the same browser starts the questionnaire again.
+export function scopeOnboarding(userId) { if (userId) STORE = `lumiere.onboarding.v1:${userId}` }
 
 const COUNTRIES = [
   { code: "US", name: "United States", currency: "USD" },
@@ -23,7 +25,7 @@ export function loadAnswers() {
   try { return JSON.parse(localStorage.getItem(STORE) || "null") } catch { return null }
 }
 export function saveAnswers(a) { localStorage.setItem(STORE, JSON.stringify(a)) }
-export function resetOnboarding() { localStorage.removeItem(STORE); localStorage.removeItem("lumiere.tour.v1") }
+export function resetOnboarding() { localStorage.removeItem(STORE); localStorage.removeItem(STORE.replace("onboarding", "tour")) }
 
 const STEPS = [
   { id: "welcome", kind: "intro" },

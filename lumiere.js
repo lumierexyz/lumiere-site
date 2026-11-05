@@ -161,6 +161,27 @@
     wrap.after(clone)
   }
 
+  // Mention « Built on Robinhood Chain » sous les boutons du héro et dans le pied de page
+  const RH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Zm0 2.3 6.8 3.8L12 11.9 5.2 8.1 12 4.3ZM5 9.8l6 3.4v6.6l-6-3.3V9.8Zm8 10v-6.6l6-3.4v6.7l-6 3.3Z"/></svg>'
+  function fixBuiltOn() {
+    const desc = [...document.querySelectorAll("#hero p")].find(x => x.textContent.trim().startsWith("AI-powered"))
+    const col = desc?.parentElement
+    if (col && !col.querySelector(":scope > .lumiere-built")) {
+      document.querySelectorAll("#hero .lumiere-built").forEach(n => n.remove())
+      const b = document.createElement("p")
+      b.className = "lumiere-built"
+      b.innerHTML = `${RH}<span>Built on <strong>Robinhood Chain</strong></span>`
+      col.prepend(b)
+    }
+    const foot = document.querySelector(".lumiere-footer")
+    if (foot && !foot.querySelector(":scope > .lumiere-built-foot")) {
+      const f = document.createElement("span")
+      f.className = "lumiere-built-foot"
+      f.innerHTML = `${RH}<span>Built on Robinhood Chain</span>`
+      foot.append(f)
+    }
+  }
+
   function fixAbout() {
     const list = document.querySelector('[data-framer-name="FAQ question list"]')
     if (!list) return
@@ -242,6 +263,7 @@
     fixPillars()
     fixTicker()
     fixHeroSecondary()
+    fixBuiltOn()
     fixAbout()
   }
 

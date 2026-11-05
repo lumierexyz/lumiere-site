@@ -1,11 +1,11 @@
 // Lumiere product page.
-// Accounts: Privy email codes. Live data: Lumiere API with the Privy access token (see /app/config.js).
+// Accounts: Privy (email code or MetaMask signature). Live data: Lumiere API with the Privy access token (see /app/config.js).
 // Preview mode (no configuration or signed out): an illustrative basket computed in the browser with the
 // same formulas as the API, labelled as illustrative everywhere it appears.
 
-import { loadAnswers, resetOnboarding, runOnboarding, saveAnswers } from "./onboarding.js"
-import { runTour, tourDone } from "./tour.js"
-import { getPrivy, currentEmail, runAuthGate, signOut } from "./auth.js"
+import { loadAnswers, resetOnboarding, runOnboarding, saveAnswers, scopeOnboarding } from "./onboarding.js"
+import { runTour, scopeTour, tourDone } from "./tour.js"
+import { getPrivy, currentUser, runAuthGate, signOut } from "./auth.js"
 
 const CFG = window.LUMIERE_CONFIG || {}
 const AUTH = Boolean(CFG.privyAppId)
@@ -230,6 +230,36 @@ function renderPreview(reason) {
   setPreviewControls(reason)
 }
 
+// A new account starts at zero: nothing is estimated until real transactions are imported.
+function renderEmpty() {
+  renderPei({ value: 0, year_over_year: 0, headline_year_over_year: 0, gap_vs_headline_yoy_pp: 0 })
+  renderChart([], false)
+  $("#pei-foot").textContent = "Your index appears after your first import."
+  renderCategories({ average_monthly_expenses: 0, by_category: [] })
+  renderScenarios(["baseline", "lower_inflation", "higher_inflation"].map((scenario, i) =>
+    ({ scenario, inflation_shift_pp: [0, -1.5, 3][i], expected_total: 0, expected_monthly_average: 0 })))
+  renderCoverage(null)
+}
+
+/** The "import a statement" message, written from the questionnaire answers. */
+function welcomeBanner() {
+  const a = answers || {}
+  const parts = []
+  let place = ""
+  try { if (a.country && a.country !== "XX") place = new Intl.DisplayNames(["en"], { type: "region" }).of(a.country) } catch {}
+  parts.push(place ? `Your account is set up for ${place}, in ${currency}.` : `Your account is set up in ${currency}.`)
+  const spend = Object.entries(a.spending || {}).filter(([, v]) => v > 0).sort((x, y) => y[1] - x[1])
+  const total = spend.reduce((t, [, v]) => t + v, 0)
+  if (total > 0) {
+    const top = spend.filter(([c]) => c !== "other").slice(0, 2).map(([c]) => (LABELS[c] || c).toLowerCase()).join(" and ")
+    parts.push(`You estimated about ${money(total)} a month` + (top ? `, mostly ${top}.` : "."))
+  }
+  const worries = (a.concerns || []).map(c => (LABELS[c] || c).toLowerCase())
+  parts.push(`Import a bank statement (CSV) to compute your Personal Expense Index and projections from your real spending` +
+    (worries.length ? `, including how ${worries.slice(0, 2).join(" and ")} prices affect you.` : "."))
+  return parts.join(" ")
+}
+
 async function loadLive() {
   if (answers?.completed && !answers.synced) {
     const body = { base_currency: answers.currency }
@@ -246,9 +276,10 @@ async function loadLive() {
   $("#chat-input").disabled = false
   $("#chat-input").placeholder = "Ask a question"
   document.querySelectorAll("#suggestions .pill, #chat-form .pill").forEach(b => (b.disabled = false))
-  banner("")
+  banner(welcomeBanner())
+  let hasData = false
   const tasks = [
-    api("/expenses/summary").then(s => renderCategories(s.has_data ? s : null)),
+    api("/expenses/summary").then(s => { if (s.has_data) { hasData = true; renderCategories(s); banner("") } }),
     Promise.all([api("/pei"), api("/pei/history")]).then(([p, h]) => { renderPei(p); renderChart(h.items, false) }),
     api("/forecasts", { method: "POST", body: JSON.stringify({ horizon_months: 12 }) })
       .then(f => renderScenarios(f.scenarios.map(s => ({ ...s, inflation_shift_pp: s.assumptions.inflation_shift_pp })))),
@@ -256,9 +287,9 @@ async function loadLive() {
   ]
   const results = await Promise.allSettled(tasks)
   const err = results.find(r => r.status === "rejected")?.reason
-  if (err?.code === "insufficient_data") banner("Import a bank statement to compute your Personal Expense Index and projections.")
-  else if (err?.code === "unsupported_geography") banner(err.message)
-  else if (err) banner(`Some figures could not be loaded: ${err.message}`)
+  if (!err || err.code === "insufficient_data") return
+  if (err.code === "unsupported_geography") banner(err.message)
+  else if (hasData) banner(`Some figures could not be loaded: ${err.message}`)
 }
 
 async function calculateCoverage() {
@@ -294,7 +325,7 @@ async function setSignedIn(email) {
   if (API) {
     await ensurePrivy()
     live = true
-    await loadLive().catch(err => banner(err.message))
+    loadLive().catch(err => banner(err.message)) // in the background: the tour must not wait for the API
   } else {
     banner("Your account is ready. Until bank imports open, this view is built from your answers with illustrative inflation rates.")
     setPreviewControls("Available when bank imports open")
@@ -362,12 +393,20 @@ const TOUR = [
   { target: "#projections", title: "The next 12 months",
     body: "Projected living costs under three inflation scenarios. They are conditional estimates, not predictions." },
   { target: "#import", title: "Switch to real numbers",
-    body: "Import a bank statement and these estimates are replaced by your actual spending, categorised automatically." },
+    body: "Your figures start at zero. Import a bank statement and everything on this page is computed from your actual spending, categorised automatically." },
   { target: "#assistant", title: "Ask in plain language",
     body: "The assistant answers with figures computed from your data, and shows where each number comes from." },
 ]
 
 async function startPage() {
+  if (AUTH && API) {
+    currency = answers?.currency || "USD"
+    $("#currency").textContent = currency
+    if (answers?.reserves > 0) $("#reserves").value = Math.round(answers.reserves)
+    renderEmpty()
+    await setSignedIn(userEmail)
+    return
+  }
   renderPreview("Available when bank imports open")
   if (!AUTH) {
     banner("Preview with an illustrative household basket. Accounts open soon.")
@@ -379,10 +418,16 @@ async function startPage() {
 $("#redo-setup").addEventListener("click", () => { resetOnboarding(); location.reload() })
 
 async function boot() {
-  // 1. Account first: sign in or create an account (Privy email code).
+  // 1. Account first: sign in or create an account (Privy email code or MetaMask).
   if (AUTH) {
-    userEmail = await currentEmail(CFG.privyAppId)
-    if (!userEmail) userEmail = await runAuthGate(CFG.privyAppId)
+    const account = (await currentUser(CFG.privyAppId)) || (await runAuthGate(CFG.privyAppId))
+    userEmail = account.label
+    // Questionnaire and tour are tracked per account, so every new account gets both.
+    scopeOnboarding(account.id)
+    scopeTour(account.id)
+    answers = loadAnswers()
+    if (account.isNew) resetOnboarding()
+    if (account.isNew) answers = null
   }
   // 2. Questionnaire on the first visit.
   if (!answers?.completed) {
