@@ -279,8 +279,14 @@ async function loadLive() {
   banner(welcomeBanner())
   loadOnchain()
   let hasData = false
+  const sample = api("/transactions/sample").then(r => { sampleActive = r.active; renderSampleControls() }).catch(() => null)
   const tasks = [
-    api("/expenses/summary").then(s => { if (s.has_data) { hasData = true; renderCategories(s); banner("") } }),
+    Promise.all([api("/expenses/summary"), sample]).then(([s]) => {
+      if (!s.has_data) return
+      hasData = true
+      renderCategories(s)
+      banner(sampleActive ? "You are viewing a sample statement built from your answers, not your real spending. Import your own CSV to replace it." : "")
+    }),
     Promise.all([api("/pei"), api("/pei/history")]).then(([p, h]) => { renderPei(p); renderChart(h.items, false) }),
     api("/forecasts", { method: "POST", body: JSON.stringify({ horizon_months: 12 }) })
       .then(f => renderScenarios(f.scenarios.map(s => ({ ...s, inflation_shift_pp: s.assumptions.inflation_shift_pp })))),
@@ -427,9 +433,52 @@ async function setSignedIn(email) {
   }
 }
 
+// ------------------------------------------------------------------ sample statement
+
+let sampleActive = false
+
+function renderSampleControls() {
+  $("#sample").hidden = !live || sampleActive
+  $("#sample-on").hidden = !live || !sampleActive
+  $("#mode-chip").textContent = sampleActive ? `${userEmail || "Signed in"} · sample data` : userEmail || "Signed in"
+}
+
+/** The questionnaire's "everything else" amount, spread over the categories it usually covers. */
+function sampleBasket() {
+  const s = { ...(answers?.spending || {}) }
+  const rest = s.other || 0
+  delete s.other
+  const split = { restaurants: 0.3, insurance: 0.15, entertainment: 0.12, subscriptions: 0.1, healthcare: 0.08, other: 0.25 }
+  for (const [c, f] of Object.entries(split)) s[c] = Math.round(rest * f)
+  return Object.fromEntries(Object.entries(s).filter(([, v]) => v > 0))
+}
+
+async function setSample(on) {
+  const btn = on ? $("#sample-load") : $("#sample-remove")
+  const label = btn.textContent
+  btn.disabled = true
+  btn.textContent = on ? "Building your sample…" : "Removing…"
+  try {
+    if (on) await api("/transactions/sample", { method: "POST", body: JSON.stringify({ monthly: sampleBasket() }) })
+    else await api("/transactions/sample", { method: "DELETE" })
+    sampleActive = on
+    if (!on) renderEmpty()
+    await loadLive()
+  } catch (err) {
+    $("#import-status").textContent = err.message
+  } finally {
+    btn.disabled = false
+    btn.textContent = label
+  }
+}
+$("#sample-load").addEventListener("click", () => setSample(true))
+$("#sample-remove").addEventListener("click", () => setSample(false))
+
 const drop = $("#drop")
 const upload = async file => {
   if (!live || !file) return
+  // A real statement replaces the sample.
+  if (sampleActive) { await api("/transactions/sample", { method: "DELETE" }).catch(() => null); sampleActive = false }
   const form = new FormData()
   form.append("file", file)
   $("#import-status").textContent = "Importing…"
